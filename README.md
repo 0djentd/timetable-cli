@@ -19,3 +19,28 @@ Commands:
   status
   watch
 ```
+```
+Usage: timetable-cli show [OPTIONS] [SELECTORS]...
+
+Options:
+  --help  Show this message and exit.
+```
+```
+Usage: timetable-cli watch [OPTIONS]
+
+Options:
+  --text TEXT
+  --interval INTEGER
+  --notification
+  --notification-cmd TEXT
+  --voice
+  --voice-cmd TEXT
+  --notify-eta TEXT
+  --help                   Show this message and exit.
+```
+```
+Usage: timetable-cli status [OPTIONS]
+
+Options:
+  --help  Show this message and exit.
+```
