@@ -138,3 +138,12 @@ def parse_timedelta_str(input_str: str) -> datetime.timedelta:
             continue
         kwargs.update({val: int(m.group())})
     return datetime.timedelta(**kwargs)
+
+
+def format_time(data: datetime.time):
+    def fix_number(number):
+        number = str(number)
+        if len(number) == 1:
+            number = "0" + number
+        return number
+    return f"{fix_number(data.hour)}:{fix_number(data.minute)}"

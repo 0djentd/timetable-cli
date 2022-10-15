@@ -2,19 +2,21 @@ import imp
 import json
 import logging
 import os
+import re
 import sqlite3
 import subprocess
 from time import sleep
 
 import click
 from appdirs import AppDirs
+import rich
 
 from timetable_cli import selectors
 from timetable_cli.application import Application, RenderConfig, TableConfig
 from timetable_cli.enums import Columns
-from timetable_cli.render import DEFAULT_COLUMNS_STR, show
+from timetable_cli.render import DEFAULT_COLUMNS_STR, get_activity_prop_str, show
 from timetable_cli.selectors import parse_selectors
-from timetable_cli.utils import parse_timedelta_str
+from timetable_cli.utils import format_time, parse_timedelta_str
 
 appdirs = AppDirs(appname="timetable_cli")
 _default_config_dir = appdirs.user_config_dir
@@ -125,8 +127,14 @@ def watch(context, text, interval):
 def status(context):
     app = context.obj
     timetable = app.timetable
-    current_activity = timetable.for_datetime(app.now())
-    next_activity = current_activity.next()
+    a1 = timetable.for_datetime(app.now())
+    a2 = a1.next()
+    a1_title = get_activity_prop_str(a1, Columns.TITLE, app, app.render_config).strip()
+    a2_title = get_activity_prop_str(a2, Columns.TITLE, app, app.render_config).strip()
+    a2_eta = get_activity_prop_str(a2, Columns.ETA, app, app.render_config).strip()
+    now_str = format_time(app.now())
+    rich.print(f"""{now_str} {a1_title} -> {a2_title}, ETA {a2_eta}""")
+
 
 
 if __name__ == "__main__":

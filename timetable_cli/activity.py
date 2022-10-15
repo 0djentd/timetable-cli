@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 from timetable_cli.category import ActivityCategory
 from timetable_cli.enums import ActivityTimeStatus
-from timetable_cli.utils import parse_timedelta
+from timetable_cli.utils import format_time, parse_timedelta
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -56,14 +56,7 @@ INSERT INTO records (title='{self.title}', date='{self._timetable.date.isoformat
         return parse_timedelta(self.start - application.now()).format_minutes()
 
     def start_str(self):
-        def fix_number(number):
-            number = str(number)
-            if len(number) == 1:
-                number = "0" + number
-            return number
-
-        return f"{fix_number(self.start.hour)}:\
-{fix_number(self.start.minute)}"
+        return format_time(self.start.time())
 
     def time_status(self, datetime_input: datetime.datetime) -> ActivityTimeStatus:
         if datetime_input > self.start and datetime_input > self.next().start:
