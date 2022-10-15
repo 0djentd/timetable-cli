@@ -112,15 +112,18 @@ def watch(context: click.Context, text, interval):
         current_activity = timetable.for_datetime(app.now())
         title = current_activity.title
         if previous_activity != current_activity:
-            command = [
-                "notify-send",
-                "--expire-time",
-                30000,
-                text,
-                title,
-                current_activity,
-            ]
-            subprocess.call(command)
+            try:
+                command = 'notify-send --expire-time 60000'.split()
+                command.extend([f'"{text}"', f'"{title}"'])
+                subprocess.call(command)
+            except subprocess.SubprocessError:
+                print("'notify-send' is not installed.")
+            try:
+                command = 'espeak -s 0.1 -g 5 -p 1'.split()
+                command.extend([f'"{text} says {title}"'])
+                subprocess.call(command)
+            except subprocess.SubprocessError:
+                print("'espeak' is not installed.")
         previous_activity = current_activity
 
 
