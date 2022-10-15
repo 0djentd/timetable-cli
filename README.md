@@ -9,11 +9,13 @@ Options:
   --debug
   -d, --global-timedelta TEXT
   -c, --columns TEXT
+  --table-kwargs TEXT
   --ignore-time-status
   --combine-title-and-variation
   --help                         Show this message and exit.
 
 Commands:
   show
+  status
   watch
 ```

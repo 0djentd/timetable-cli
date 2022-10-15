@@ -146,4 +146,5 @@ def format_time(data: datetime.time):
         if len(number) == 1:
             number = "0" + number
         return number
+
     return f"{fix_number(data.hour)}:{fix_number(data.minute)}"

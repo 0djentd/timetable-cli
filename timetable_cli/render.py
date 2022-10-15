@@ -52,13 +52,17 @@ def show(
     for activity in data:
         elements = []
         for column in columns:
-            element = get_activity_prop_str(activity, column, application, render_config)
+            element = get_activity_prop_str(
+                activity, column, application, render_config
+            )
             elements.append(element)
         table.add_row(*elements)
     rich.print(table)
 
 
-def get_activity_prop_str(activity, column: Columns, application: Application, render_config: RenderConfig) -> str:
+def get_activity_prop_str(
+    activity, column: Columns, application: Application, render_config: RenderConfig
+) -> str:
     def add_tags(variable, colorscheme_element):
         # colorschemes
         global_colorscheme = application.colorscheme
@@ -114,14 +118,10 @@ def get_activity_prop_str(activity, column: Columns, application: Application, r
                 str(activity.start_str()), "activity_start_time")
         case Columns.END:
             element = add_tags(
-                str(activity.next().start_str()
-                    ), "activity_end_time"
-            )
+                str(activity.next().start_str()), "activity_end_time")
         case Columns.TOTAL:
             element = add_tags(
-                str(activity.total_time_str()
-                    ), "activity_total_time"
-            )
+                str(activity.total_time_str()), "activity_total_time")
         case Columns.ETA:
             element = add_tags(
                 str(activity.eta(application)), "activity_eta")
@@ -136,7 +136,5 @@ def get_activity_prop_str(activity, column: Columns, application: Application, r
             element = variation_str
         case Columns.STATUS:
             element = add_tags(
-                str(activity.get_status(
-                    application)), "activity_status"
-            )
+                str(activity.get_status(application)), "activity_status")
     return element
