@@ -1,4 +1,5 @@
 import imp
+import json
 import logging
 import os
 import sqlite3
@@ -9,7 +10,7 @@ import click
 from appdirs import AppDirs
 
 from timetable_cli import selectors
-from timetable_cli.application import Application, TableConfig
+from timetable_cli.application import Application, RenderConfig, TableConfig
 from timetable_cli.enums import Columns
 from timetable_cli.render import DEFAULT_COLUMNS_STR, show
 from timetable_cli.selectors import parse_selectors
@@ -50,6 +51,7 @@ CREATE TABLE IF NOT EXISTS records (
 @click.option("--debug", default=False, is_flag=True)
 @click.option("-d", "--global-timedelta", default="")
 @click.option("-c", "--columns", default=DEFAULT_COLUMNS_STR)
+@click.option("--table-kwargs", default="{}")
 @click.option("--ignore-time-status", is_flag=True, default=False)
 @click.option("--combine-title-and-variation", is_flag=True, default=True)
 @click.pass_context
@@ -60,12 +62,18 @@ def commands(context, config, db, debug, global_timedelta, **kwargs):
     selectors.ShortcutSelector.shortcuts.update(
         config_module.get_shortcuts())
     connection = get_db_connection(db)
-    kwargs["columns"] = Columns.parse_str(kwargs['columns'])
     context.obj = Application.from_config_module(
         config_module,
         connection=connection,
         global_timedelta=parse_timedelta_str(global_timedelta),
-        table_config=TableConfig(**kwargs)
+        table_config=TableConfig(
+            table_kwargs=json.loads(kwargs["table_kwargs"]),
+            columns=Columns.parse_str(kwargs["columns"]),
+        ),
+        render_config=RenderConfig(
+            ignore_time_status=kwargs["ignore_time_status"],
+            combine_title_and_variation=kwargs["combine_title_and_variation"],
+        ),
     )
 
 
@@ -83,7 +91,7 @@ def show_activities(context, selectors):
         activities = selector.get(timetable, app.now())
         logger.debug(type(activities))
         logger.debug(len(activities))
-        show(activities, app, table_config=app.table_config)
+        show(activities, app, app.table_config, app.render_config)
 
 
 @commands.command("watch")
@@ -110,6 +118,15 @@ def watch(context, text, interval):
             ]
             subprocess.call(command)
         previous_activity = current_activity
+
+
+@commands.command("status")
+@click.pass_context
+def status(context):
+    app = context.obj
+    timetable = app.timetable
+    current_activity = timetable.for_datetime(app.now())
+    next_activity = current_activity.next()
 
 
 if __name__ == "__main__":

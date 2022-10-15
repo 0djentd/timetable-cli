@@ -1,16 +1,14 @@
 import logging
-from enum import Enum, unique
-from typing import Any, List, Optional
+from typing import List, Optional
 
 import rich
 from rich.table import Table
 
 from timetable_cli.activity import Activity
-from timetable_cli.application import TableConfig, Application
+from timetable_cli.application import Application, RenderConfig, TableConfig
 from timetable_cli.colorscheme import DEFAULT_COLORSCHEME
-from timetable_cli.enums import ActivityTimeStatus
+from timetable_cli.enums import ActivityTimeStatus, Columns
 from timetable_cli.utils import now, tag
-from timetable_cli.enums import Columns
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -27,12 +25,13 @@ def show(
     data: Activity | List[Activity],
     application: Application,
     table_config: TableConfig,
+    render_config: RenderConfig,
 ):
     """Display activities in a table format."""
     columns: Optional[List[Columns]] = table_config.columns
     table_kwargs: Optional[dict] = table_config.table_kwargs
-    ignore_time_status = table_config.ignore_time_status
-    combine_title_and_variation = table_config.combine_title_and_variation
+    ignore_time_status = render_config.ignore_time_status
+    combine_title_and_variation = render_config.combine_title_and_variation
 
     # default kwargs
     if not isinstance(data, list):
@@ -53,6 +52,7 @@ def show(
 
     # rows
     for activity in data:
+
         def add_tags(variable, colorscheme_element):
             # colorschemes
             colorschemes = [DEFAULT_COLORSCHEME]
@@ -81,11 +81,14 @@ def show(
             for index, colorscheme in enumerate(colorschemes):
                 try:
                     tag_to_use = colorscheme[key]
-                    logger.debug(f"Using '{key}': '{tag_to_use}' from colorscheme #'{index}'")
+                    logger.debug(
+                        f"Using '{key}': '{tag_to_use}' from colorscheme #'{index}'"
+                    )
                 except KeyError:
                     pass
             if not isinstance(tag_to_use, str):
-                raise TypeError(f"No key '{key}' in colorschemes '{colorschemes}'")
+                raise TypeError(
+                    f"No key '{key}' in colorschemes '{colorschemes}'")
             # TODO
             return tag(variable, tag_to_use)
 

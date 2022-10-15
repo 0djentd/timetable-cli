@@ -1,4 +1,5 @@
 import unittest
+
 from timetable_cli.render import Columns
 
 

@@ -16,9 +16,13 @@ logger.setLevel(logging.DEBUG)
 @dataclass
 class TableConfig:
     columns: List[Columns]
-    combine_title_and_variation: bool
-    ignore_time_status: bool
     table_kwargs: dict = field(default_factory=dict)
+
+
+@dataclass
+class RenderConfig:
+    ignore_time_status: bool = False
+    combine_title_and_variation: bool = False
 
 
 @dataclass
@@ -29,6 +33,7 @@ class Application:
     connection: sqlite3.Connection
     global_timedelta: datetime.timedelta
     table_config: TableConfig
+    render_config: RenderConfig
 
     def today(self):
         return self.now().date()
@@ -43,6 +48,7 @@ class Application:
         connection: sqlite3.Connection,
         global_timedelta: datetime.timedelta,
         table_config: TableConfig,
+        render_config: RenderConfig,
     ):
         timetable = config_module.get_timetable(
             now(global_timedelta))
@@ -64,4 +70,5 @@ class Application:
             connection=connection,
             global_timedelta=global_timedelta,
             table_config=table_config,
+            render_config=render_config,
         )
