@@ -2,7 +2,7 @@ import imp
 import json
 import logging
 import os
-import re
+import platform
 import sqlite3
 import subprocess
 from time import sleep
@@ -101,22 +101,23 @@ def show_activities(context, selectors):
 @click.option("--text", default="timetable-cli")
 @click.option("--interval", default=5)
 @click.pass_context
-def watch(context, text, interval):
+def watch(context: click.Context, text, interval):
     app = context.obj
     timetable = app.timetable
     previous_activity = timetable.for_datetime(app.now())
     while True:
+        clear_screen()
+        show_status(app, timetable)
         sleep(interval)
         current_activity = timetable.for_datetime(app.now())
-        line = current_activity.line()
+        title = current_activity.title
         if previous_activity != current_activity:
-            show([current_activity], app, app.table_config)
             command = [
                 "notify-send",
                 "--expire-time",
                 30000,
                 text,
-                line,
+                title,
                 current_activity,
             ]
             subprocess.call(command)
@@ -128,17 +129,28 @@ def watch(context, text, interval):
 def status(context):
     app = context.obj
     timetable = app.timetable
-    a1 = timetable.for_datetime(app.now())
-    a2 = a1.next()
+    show_status(app, timetable)
+
+
+def show_status(app, timetable):
+    activity_1 = timetable.for_datetime(app.now())
+    activity_2 = activity_1.next()
     a1_title = get_activity_prop_str(
-        a1, Columns.TITLE, app, app.render_config).strip()
+        activity_1, Columns.TITLE, app, app.render_config).strip()
     a2_title = get_activity_prop_str(
-        a2, Columns.TITLE, app, app.render_config).strip()
+        activity_2, Columns.TITLE, app, app.render_config).strip()
     a2_eta = get_activity_prop_str(
-        a2, Columns.ETA, app, app.render_config).strip()
+        activity_2, Columns.ETA, app, app.render_config).strip()
     now_str = format_time(app.now())
     rich.print(
         f"""{now_str} {a1_title} -> {a2_title}, ETA {a2_eta}""")
+
+
+def clear_screen():
+    if platform.system() == "Linux":
+        subprocess.call("clear")
+    else:
+        raise ValueError
 
 
 if __name__ == "__main__":
