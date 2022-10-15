@@ -5,8 +5,8 @@ from dataclasses import dataclass, field
 from types import ModuleType
 from typing import Any, List
 
-from timetable_cli import default_config
 from timetable_cli.enums import Columns
+from timetable_cli.selectors import DEFAULT_SHORTCUTS
 from timetable_cli.utils import check_colorscheme, now
 
 logger = logging.getLogger(__name__)
@@ -44,12 +44,8 @@ class Application:
         global_timedelta: datetime.timedelta,
         table_config: TableConfig,
     ):
-        try:
-            timetable = config_module.get_timetable(
-                now(global_timedelta))
-        except AttributeError:
-            timetable = default_config.get_timetable(
-                now(global_timedelta))
+        timetable = config_module.get_timetable(
+            now(global_timedelta))
 
         try:
             colorscheme = config_module.get_colorscheme()
@@ -60,7 +56,7 @@ class Application:
         try:
             shortcuts = config_module.get_shortcuts()
         except AttributeError:
-            shortcuts = default_config.get_shortcuts()
+            shortcuts = DEFAULT_SHORTCUTS
         return cls(
             timetable=timetable,
             colorscheme=colorscheme,
