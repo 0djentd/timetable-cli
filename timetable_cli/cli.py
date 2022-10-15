@@ -12,6 +12,7 @@ import rich
 from appdirs import AppDirs
 
 from timetable_cli import selectors
+from timetable_cli.activity import Activity
 from timetable_cli.application import Application, RenderConfig, TableConfig
 from timetable_cli.enums import Columns
 from timetable_cli.render import (DEFAULT_COLUMNS_STR, get_activity_prop_str,
@@ -100,8 +101,22 @@ def show_activities(context, selectors):
 @commands.command("watch")
 @click.option("--text", default="timetable-cli")
 @click.option("--interval", default=5)
+@click.option("--notification", default=False, is_flag=True)
+@click.option("--notification-cmd", default="notify-send --expire-time 60000")
+@click.option("--voice", default=False, is_flag=True)
+@click.option("--voice-cmd", default="espeak -s 0.1 -g 5 -p 1")
+@click.option("--notify-eta", default="120m 60m 30m")
 @click.pass_context
-def watch(context: click.Context, text, interval):
+def watch(
+    context: click.Context,
+    text,
+    interval,
+    notification,
+    notification_cmd,
+    voice,
+    voice_cmd,
+    notify_eta,
+):
     app = context.obj
     timetable = app.timetable
     previous_activity = timetable.for_datetime(app.now())
@@ -110,20 +125,30 @@ def watch(context: click.Context, text, interval):
         show_status(app, timetable)
         sleep(interval)
         current_activity = timetable.for_datetime(app.now())
+        next_activity = current_activity.next()
         title = current_activity.title
+        if notify_eta:
+            if current_activity != timetable[-1]:
+                eta = next_activity.eta(app)
+                if eta in notify_eta.split():
+                    command = notification_cmd.split()
+                    command.extend(
+                        [f'"{text}"', f'"{title}, ETA is {eta}"'])
+                    subprocess.call(command)
+                if voice:
+                    command = voice_cmd.split()
+                    command.extend(
+                        [f'"{text} says {title}, ETA is {eta}"'])
+                    subprocess.call(command)
         if previous_activity != current_activity:
-            try:
-                command = 'notify-send --expire-time 60000'.split()
+            if notification:
+                command = notification_cmd.split()
                 command.extend([f'"{text}"', f'"{title}"'])
                 subprocess.call(command)
-            except subprocess.SubprocessError:
-                print("'notify-send' is not installed.")
-            try:
-                command = 'espeak -s 0.1 -g 5 -p 1'.split()
+            if voice:
+                command = voice_cmd.split()
                 command.extend([f'"{text} says {title}"'])
                 subprocess.call(command)
-            except subprocess.SubprocessError:
-                print("'espeak' is not installed.")
         previous_activity = current_activity
 
 
