@@ -136,11 +136,14 @@ def show_status(app, timetable):
     activity_1 = timetable.for_datetime(app.now())
     activity_2 = activity_1.next()
     a1_title = get_activity_prop_str(
-        activity_1, Columns.TITLE, app, app.render_config).strip()
+        activity_1, Columns.TITLE, app, app.render_config
+    ).strip()
     a2_title = get_activity_prop_str(
-        activity_2, Columns.TITLE, app, app.render_config).strip()
+        activity_2, Columns.TITLE, app, app.render_config
+    ).strip()
     a2_eta = get_activity_prop_str(
-        activity_2, Columns.ETA, app, app.render_config).strip()
+        activity_2, Columns.ETA, app, app.render_config
+    ).strip()
     now_str = format_time(app.now())
     rich.print(
         f"""{now_str} {a1_title} -> {a2_title}, ETA {a2_eta}""")
