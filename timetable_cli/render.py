@@ -2,10 +2,13 @@ import logging
 from typing import List, Optional
 
 import rich
+from rich.box import ROUNDED
 from rich.table import Table
 
 from timetable_cli.activity import Activity
-from timetable_cli.application import Application, RenderConfig, TableConfig
+from timetable_cli.application import (Application, CategoriesRenderConfig,
+                                       RenderConfig, TableConfig)
+from timetable_cli.category import ActivityCategory
 from timetable_cli.colorscheme import DEFAULT_COLORSCHEME
 from timetable_cli.enums import ActivityTimeStatus, Columns
 from timetable_cli.utils import now, tag
@@ -26,6 +29,7 @@ def show(
     application: Application,
     table_config: TableConfig,
     render_config: RenderConfig,
+    categories_render_config: CategoriesRenderConfig,
 ):
     """Display activities in a table format."""
     columns: Optional[List[Columns]] = table_config.columns
@@ -44,7 +48,7 @@ def show(
             columns.remove(Columns.VARIATION)
 
     # table
-    table = Table(**table_kwargs)
+    table = Table(box=ROUNDED, **table_kwargs)
     for column in columns:
         table.add_column(column.value)
 
@@ -57,6 +61,9 @@ def show(
             )
             elements.append(element)
         table.add_row(*elements)
+
+    if categories_render_config.list_categories:
+        show_categories_list(application.timetable.categories)
     rich.print(table)
 
 
@@ -138,3 +145,18 @@ def get_activity_prop_str(
             element = add_tags(
                 str(activity.get_status(application)), "activity_status")
     return element
+
+
+def show_categories_list(
+    data: List[ActivityCategory],
+):
+    line = "Categories: "
+    categories_str_list: List[str] = []
+    for category in data:
+        colorscheme = category.colorscheme
+        categories_str_list.append(
+            tag(category.title,
+                colorscheme[list(colorscheme.keys())[0]])
+        )
+    line += ", ".join(categories_str_list)
+    rich.print(line)

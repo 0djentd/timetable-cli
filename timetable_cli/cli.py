@@ -12,11 +12,11 @@ import rich
 from appdirs import AppDirs
 
 from timetable_cli import selectors
-from timetable_cli.activity import Activity
-from timetable_cli.application import Application, RenderConfig, TableConfig
+from timetable_cli.application import (Application, CategoriesRenderConfig,
+                                       RenderConfig, TableConfig)
 from timetable_cli.enums import Columns
 from timetable_cli.render import (DEFAULT_COLUMNS_STR, get_activity_prop_str,
-                                  show)
+                                  show, show_categories_list)
 from timetable_cli.selectors import parse_selectors
 from timetable_cli.utils import format_time, parse_timedelta_str
 
@@ -54,12 +54,13 @@ CREATE TABLE IF NOT EXISTS records (
 @click.option("--db", required=True, default=_default_db)
 @click.option("--debug", default=False, is_flag=True)
 @click.option("-d", "--global-timedelta", default="")
+@click.option("--list-categories", is_flag=True, default=True)
 @click.option("-c", "--columns", default=DEFAULT_COLUMNS_STR)
 @click.option("--table-kwargs", default="{}")
 @click.option("--ignore-time-status", is_flag=True, default=False)
 @click.option("--combine-title-and-variation", is_flag=True, default=True)
 @click.pass_context
-def commands(context, config, db, debug, global_timedelta, **kwargs):
+def commands(context, config, db, debug, global_timedelta, list_categories, **kwargs):
     if debug:
         logging.basicConfig(level=logging.DEBUG)
     config_module = imp.load_source("config_module", config)
@@ -78,6 +79,9 @@ def commands(context, config, db, debug, global_timedelta, **kwargs):
             ignore_time_status=kwargs["ignore_time_status"],
             combine_title_and_variation=kwargs["combine_title_and_variation"],
         ),
+        categories_render_config=CategoriesRenderConfig(
+            list_categories=list_categories,
+        ),
     )
 
 
@@ -86,6 +90,7 @@ def commands(context, config, db, debug, global_timedelta, **kwargs):
 @click.pass_context
 def show_activities(context, selectors):
     select_and_show_activities(context, selectors)
+
 
 def select_and_show_activities(context, selectors):
     app = context.obj
@@ -97,7 +102,13 @@ def select_and_show_activities(context, selectors):
     activities = []
     for selector in selectors:
         activities += selector.get(timetable, app.now())
-    show(activities, app, app.table_config, app.render_config)
+    show(
+        activities,
+        app,
+        app.table_config,
+        app.render_config,
+        app.categories_render_config,
+    )
 
 
 @commands.command("watch")

@@ -4,6 +4,7 @@ from collections import UserList
 from typing import List, Optional
 
 from timetable_cli.activity import Activity
+from timetable_cli.category import ActivityCategory
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -12,6 +13,7 @@ logger.setLevel(logging.DEBUG)
 class Timetable(UserList):
     data: List[Activity]
     date: Optional[datetime.date] = None
+    categories: List[ActivityCategory]
 
     def __init__(self, activities: List[Activity]):
         super().__init__(activities)

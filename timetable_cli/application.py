@@ -14,6 +14,11 @@ logger.setLevel(logging.DEBUG)
 
 
 @dataclass
+class CategoriesRenderConfig:
+    list_categories: bool
+
+
+@dataclass
 class TableConfig:
     columns: List[Columns]
     table_kwargs: dict = field(default_factory=dict)
@@ -34,6 +39,7 @@ class Application:
     global_timedelta: datetime.timedelta
     table_config: TableConfig
     render_config: RenderConfig
+    categories_render_config: CategoriesRenderConfig
 
     def today(self):
         return self.now().date()
@@ -49,6 +55,7 @@ class Application:
         global_timedelta: datetime.timedelta,
         table_config: TableConfig,
         render_config: RenderConfig,
+        categories_render_config: CategoriesRenderConfig,
     ):
         timetable = config_module.get_timetable(
             now(global_timedelta))
@@ -71,4 +78,5 @@ class Application:
             global_timedelta=global_timedelta,
             table_config=table_config,
             render_config=render_config,
+            categories_render_config=categories_render_config,
         )

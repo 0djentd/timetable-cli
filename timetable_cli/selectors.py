@@ -102,10 +102,8 @@ class RangeSelector(ComplexSelector):
         logger.debug(self.value)
         re_1 = _SIMPLE_SELECTOR_RE.replace("(", "(^")
         re_2 = _SIMPLE_SELECTOR_RE.replace(")", "$)")
-        match_1 = re.search(
-            re_1, self.value)
-        match_2 = re.search(
-            re_2, self.value)
+        match_1 = re.search(re_1, self.value)
+        match_2 = re.search(re_2, self.value)
         logger.debug(re_1)
         logger.debug(re_2)
 
