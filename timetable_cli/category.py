@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import logging
 from typing import Optional
 
@@ -7,6 +8,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+@dataclass
 class ActivityCategory:
     title: str
     colorscheme: dict

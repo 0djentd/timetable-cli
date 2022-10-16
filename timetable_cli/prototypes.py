@@ -99,7 +99,6 @@ class WeeklyActivityPrototype(ActivityPrototype):
 
 class TimetablePrototype(UserList):
     data: List[ActivityPrototype]
-    date: Optional[datetime.date] = None
 
     def get(self, date: datetime.date) -> Timetable:
         activities = []
@@ -108,5 +107,4 @@ class TimetablePrototype(UserList):
         timetable = Timetable(activities)
         for activity in timetable:
             activity._timetable = timetable
-        timetable.date = date
         return timetable
