@@ -85,17 +85,19 @@ def commands(context, config, db, debug, global_timedelta, **kwargs):
 @click.argument("selectors", nargs=-1, type=str)
 @click.pass_context
 def show_activities(context, selectors):
+    select_and_show_activities(context, selectors)
+
+def select_and_show_activities(context, selectors):
     app = context.obj
     if len(selectors) == 0:
         selectors = ["0"]
     timetable = context.obj.timetable
     selectors = parse_selectors(selectors)
     logger.debug(selectors)
+    activities = []
     for selector in selectors:
-        activities = selector.get(timetable, app.now())
-        logger.debug(type(activities))
-        logger.debug(len(activities))
-        show(activities, app, app.table_config, app.render_config)
+        activities += selector.get(timetable, app.now())
+    show(activities, app, app.table_config, app.render_config)
 
 
 @commands.command("watch")
@@ -106,6 +108,7 @@ def show_activities(context, selectors):
 @click.option("--voice", default=False, is_flag=True)
 @click.option("--voice-cmd", default="espeak -s 0.1 -g 5 -p 1")
 @click.option("--notify-eta", default="120m 60m 30m")
+@click.option("--table-selectors", default="-3..3")
 @click.pass_context
 def watch(
     context: click.Context,
@@ -116,6 +119,7 @@ def watch(
     voice,
     voice_cmd,
     notify_eta,
+    table_selectors,
 ):
     app = context.obj
     timetable = app.timetable
@@ -123,7 +127,6 @@ def watch(
     while True:
         clear_screen()
         show_status(app, timetable)
-        sleep(interval)
         current_activity = timetable.for_datetime(app.now())
         next_activity = current_activity.next()
         title = current_activity.title
@@ -151,6 +154,8 @@ def watch(
                 command.extend([f'"{text} says {title}"'])
                 subprocess.call(command)
         previous_activity = current_activity
+        select_and_show_activities(context, table_selectors.split())
+        sleep(interval)
 
 
 @commands.command("status")
