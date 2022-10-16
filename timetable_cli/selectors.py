@@ -39,7 +39,7 @@ class SimpleSelector(_SelectorType):
     value: Any
 
     def __init__(self, selector: str):
-        parsed = re.match(self.RE, selector)
+        parsed = re.search(self.RE, selector)
         if parsed is None:
             raise WrongSelectorType
         value_str = parsed.group()
@@ -64,7 +64,7 @@ class ComplexSelector(SimpleSelector):
 
 class SelectorNumber(SimpleSelector):
     _examples = ["#123", "#0", "#-123"]
-    RE = r"^(?=#)-?\d+$"
+    RE = r"(?<=^#)-?\d+$"
     FULL_RE = r"^#-?\d+$"
     _VALUE_TYPE = int
 
@@ -100,10 +100,14 @@ class RangeSelector(ComplexSelector):
 
     def get(self, timetable, datetime_input) -> List[Activity]:
         logger.debug(self.value)
-        first_match = re.search(
-            "^" + _SIMPLE_SELECTOR_RE, self.value)
-        second_match = re.search(
-            _SIMPLE_SELECTOR_RE + "$", self.value)
+        re_1 = _SIMPLE_SELECTOR_RE.replace("(", "(^")
+        re_2 = _SIMPLE_SELECTOR_RE.replace(")", "$)")
+        match_1 = re.search(
+            re_1, self.value)
+        match_2 = re.search(
+            re_2, self.value)
+        logger.debug(re_1)
+        logger.debug(re_2)
 
         def get_activity(re_match) -> Optional[Activity]:
             logger.debug(re_match)
@@ -113,8 +117,8 @@ class RangeSelector(ComplexSelector):
             activity = selector.get(timetable, datetime_input)
             return activity
 
-        activity_1 = get_activity(first_match)
-        activity_2 = get_activity(second_match)
+        activity_1 = get_activity(match_1)
+        activity_2 = get_activity(match_2)
 
         def get_index(activity: Optional[Activity]):
             if not activity:
