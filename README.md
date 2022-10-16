@@ -8,6 +8,7 @@ Options:
   --db TEXT                      [required]
   --debug
   -d, --global-timedelta TEXT
+  --list-categories
   -c, --columns TEXT
   --table-kwargs TEXT
   --ignore-time-status
@@ -36,6 +37,7 @@ Options:
   --voice
   --voice-cmd TEXT
   --notify-eta TEXT
+  --table-selectors TEXT
   --help                   Show this message and exit.
 ```
 ```
