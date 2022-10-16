@@ -23,6 +23,10 @@ class WrongSelectorType(Exception):
     pass
 
 
+class ActivityNotFound(Exception):
+    pass
+
+
 class _SelectorType:
     pass
 
@@ -115,6 +119,10 @@ class RangeSelector(ComplexSelector):
         def get_index(activity: Optional[Activity]):
             if not activity:
                 return None
+            if isinstance(activity, list):
+                if len(activity) != 1:
+                    raise ValueError
+                activity = activity[0]
             return timetable.index(activity)
 
         i_1 = get_index(activity_1)
@@ -131,21 +139,24 @@ class TitleSelector(SimpleSelector):
     _VALUE_TYPE = str
 
     def get(self, timetable, datetime_input) -> List[Activity]:
-        for x in timetable:
-            if x.title == self.value:
-                return [x]
+        value = self.value
+        for activity in timetable:
+            if activity.title == value:
+                return [activity]
+        raise ActivityNotFound(f"'{value}'")
 
 
 class TitleSelectorMultipleActivities(TitleSelector):
-    RE = r"^.*\+$"
-    FULL_RE = r"^.*(?<=\+)$"
+    RE = r"^.*(?=\+$)"
+    FULL_RE = r"^.*\+$"
     _VALUE_TYPE = str
 
     def get(self, timetable, datetime_input):
+        value = self.value
         result = []
-        for x in timetable:
-            if x.title == self.value:
-                result.append(x)
+        for activity in timetable:
+            if activity.title == value:
+                result.append(activity)
         return result
 
 
