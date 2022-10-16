@@ -131,15 +131,16 @@ def watch(
             if current_activity != timetable[-1]:
                 eta = next_activity.eta(app)
                 if eta in notify_eta.split():
-                    command = notification_cmd.split()
-                    command.extend(
-                        [f'"{text}"', f'"{title}, ETA is {eta}"'])
-                    subprocess.call(command)
-                if voice:
-                    command = voice_cmd.split()
-                    command.extend(
-                        [f'"{text} says {title}, ETA is {eta}"'])
-                    subprocess.call(command)
+                    if notification:
+                        command = notification_cmd.split()
+                        command.extend(
+                            [f'"{text}"', f'"{title}, ETA is {eta}"'])
+                        subprocess.call(command)
+                    if voice:
+                        command = voice_cmd.split()
+                        command.extend(
+                            [f'"{text} says {title}, ETA is {eta}"'])
+                        subprocess.call(command)
         if previous_activity != current_activity:
             if notification:
                 command = notification_cmd.split()
