@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS records (
 @click.option("--list-categories", is_flag=True, default=True)
 @click.option("-c", "--columns", default=DEFAULT_COLUMNS_STR)
 @click.option("--table-kwargs", default="{}")
-@click.option("--ignore-time-status", is_flag=True, default=False)
+@click.option("-T", "--ignore-time-status", is_flag=True, default=False)
 @click.option("--combine-title-and-variation", is_flag=True, default=True)
 @click.pass_context
 def commands(context, config, db, debug, global_timedelta, list_categories, **kwargs):
