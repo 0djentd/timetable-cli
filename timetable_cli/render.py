@@ -11,7 +11,7 @@ from timetable_cli.application import (Application, CategoriesRenderConfig,
 from timetable_cli.category import ActivityCategory
 from timetable_cli.colorscheme import DEFAULT_COLORSCHEME
 from timetable_cli.enums import ActivityTimeStatus, Columns
-from timetable_cli.utils import now, tag
+from timetable_cli.utils import tag
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -60,7 +60,12 @@ def show(
                 activity, column, application, render_config
             )
             elements.append(element)
-        table.add_row(*elements)
+        if activity.time_status(application.now()) == ActivityTimeStatus.NOW:
+            table.add_section()
+            table.add_row(*elements)
+            table.add_section()
+        else:
+            table.add_row(*elements)
 
     if categories_render_config.list_categories:
         show_categories_list(application.timetable.categories)
@@ -85,7 +90,7 @@ def get_activity_prop_str(
         if render_config.ignore_time_status:
             suffix = "after"
         else:
-            match activity.time_status(now()):
+            match activity.time_status(application.now()):
                 case ActivityTimeStatus.BEFORE:
                     suffix = "before"
                 case ActivityTimeStatus.NOW:
@@ -130,8 +135,15 @@ def get_activity_prop_str(
             element = add_tags(
                 str(activity.total_time_str()), "activity_total_time")
         case Columns.ETA:
+            now = application.now()
+            if activity.time_status(now) == ActivityTimeStatus.BEFORE:
+                eta = "-"
+            elif activity.time_status(now) == ActivityTimeStatus.NOW:
+                eta = "now"
+            else:
+                eta = activity.eta(application)
             element = add_tags(
-                str(activity.eta(application)), "activity_eta")
+                str(eta), "activity_eta")
         case Columns.TITLE:
             title_str = add_tags(
                 str(activity.title), "activity_title")
@@ -150,7 +162,7 @@ def get_activity_prop_str(
 def show_categories_list(
     data: List[ActivityCategory],
 ):
-    line = "Categories: "
+    table = Table(show_header=False, show_edge=False)
     categories_str_list: List[str] = []
     for category in data:
         colorscheme = category.colorscheme
@@ -158,5 +170,5 @@ def show_categories_list(
             tag(category.title,
                 colorscheme[list(colorscheme.keys())[0]])
         )
-    line += ", ".join(categories_str_list)
-    rich.print(line)
+    table.add_row(*categories_str_list)
+    rich.print(table)

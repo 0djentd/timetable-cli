@@ -9,7 +9,10 @@ from time import sleep
 
 import click
 import rich
+from rich.box import ROUNDED
+from rich.panel import Panel
 from appdirs import AppDirs
+from rich.table import Table
 
 from timetable_cli import selectors
 from timetable_cli.application import (Application, CategoriesRenderConfig,
@@ -137,10 +140,14 @@ def watch(
     previous_activity = timetable.for_datetime(app.now())
     while True:
         clear_screen()
-        show_status(app, timetable)
+        show_time_and_date(app)
+        # show_status(app, timetable)
+        rich.print("")
         current_activity = timetable.for_datetime(app.now())
         next_activity = current_activity.next()
         title = current_activity.title
+        if current_activity.variation:
+            title += " " + current_activity.variation
         if notify_eta:
             if current_activity != timetable[-1]:
                 eta = next_activity.eta(app)
@@ -177,7 +184,20 @@ def status(context):
     show_status(app, timetable)
 
 
-def show_status(app, timetable):
+def show_time_and_date(app):
+    table = Table(
+            # show_edge=False,
+            show_header=False,
+            box=ROUNDED
+            )
+    table.add_row(
+            app.now().time().isoformat()[:5],
+            app.now().date().isoformat()
+            )
+    rich.print(table)
+
+
+def show_status(app: Application, timetable):
     activity_1 = timetable.for_datetime(app.now())
     activity_2 = activity_1.next()
     a1_title = get_activity_prop_str(
@@ -189,9 +209,14 @@ def show_status(app, timetable):
     a2_eta = get_activity_prop_str(
         activity_2, Columns.ETA, app, app.render_config
     ).strip()
-    now_str = format_time(app.now())
-    rich.print(
-        f"""{now_str} {a1_title} -> {a2_title}, ETA {a2_eta}""")
+    table = Table(show_header=False, show_edge=False, box=ROUNDED)
+    table.add_row(
+            # app.now().time().isoformat()[:5],
+            a1_title,
+            "ETA " + a2_eta,
+            a2_title,
+        )
+    rich.print(table)
 
 
 def clear_screen():
