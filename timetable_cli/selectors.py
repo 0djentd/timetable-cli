@@ -143,7 +143,7 @@ class TitleSelector(SimpleSelector):
     def get(self, timetable, datetime_input) -> List[Activity]:
         value = self.value
         for activity in timetable:
-            if activity.title == value:
+            if re.search(value, activity.title):
                 return [activity]
         raise ActivityNotFound(f"'{value}'")
 
@@ -157,7 +157,7 @@ class TitleSelectorMultipleActivities(TitleSelector):
         value = self.value
         result = []
         for activity in timetable:
-            if activity.title == value:
+            if re.search(value, activity.title):
                 result.append(activity)
         return result
 
