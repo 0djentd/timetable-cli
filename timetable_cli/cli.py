@@ -1,5 +1,6 @@
 import imp
 import json
+import random
 import logging
 import os
 import platform
@@ -20,7 +21,7 @@ from timetable_cli.enums import Columns
 from timetable_cli.render import (DEFAULT_COLUMNS_STR, get_activity_prop_str,
                                   show)
 from timetable_cli.selectors import parse_selectors
-from timetable_cli.utils import format_time, parse_timedelta_str
+from timetable_cli.utils import format_time, parse_timedelta_str, tag
 
 appdirs = AppDirs(appname="timetable_cli")
 _default_config_dir = appdirs.user_config_dir
@@ -140,6 +141,7 @@ def watch(
     while True:
         clear_screen()
         show_time_and_date(app)
+        show_random_quote(app)
         # show_status(app, timetable)
         rich.print("")
         current_activity = timetable.for_datetime(app.now())
@@ -172,6 +174,7 @@ def watch(
                 subprocess.call(command)
         previous_activity = current_activity
         select_and_show_activities(context, table_selectors.split())
+        show_random_rule(app)
         sleep(interval)
 
 
@@ -221,6 +224,45 @@ def show_status(app: Application, timetable):
             a2_title,
         )
     rich.print(table)
+
+
+@commands.command("rules")
+@click.pass_context
+def show_rules_cmd(context):
+    show_rules(context.obj)
+
+
+def show_random_rule(app):
+    rules = app.rules
+    if not rules:
+        return
+    index = random.randint(0, len(rules) - 1)
+    rich.print(rules[index])
+
+
+def show_rules(app):
+    rules = app.rules
+    if not rules:
+        return
+    table = Table(show_header=False, box=ROUNDED)
+    for rule in rules:
+        table.add_row(rule)
+    rich.print(table)
+
+
+@commands.command("quote")
+@click.pass_context
+def show_quote_cmd(context):
+    show_random_quote(context.obj)
+
+
+def show_random_quote(app):
+    quotes = app.quotes
+    if not quotes:
+        return
+    index = random.randint(0, len(quotes) - 1)
+    quote = quotes[index]
+    rich.print(tag(quote, "italic"))
 
 
 def clear_screen():

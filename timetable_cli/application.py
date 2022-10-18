@@ -3,7 +3,7 @@ import logging
 import sqlite3
 from dataclasses import dataclass, field
 from types import ModuleType
-from typing import Any, List
+from typing import Any, List, Optional
 
 from timetable_cli.enums import Columns
 from timetable_cli.selectors import DEFAULT_SHORTCUTS
@@ -40,6 +40,8 @@ class Application:
     table_config: TableConfig
     render_config: RenderConfig
     categories_render_config: CategoriesRenderConfig
+    rules: Optional[List[str]] = None
+    quotes: Optional[List[str]] = None
 
     def today(self):
         return self.now().date()
@@ -70,10 +72,20 @@ class Application:
             shortcuts = config_module.get_shortcuts()
         except AttributeError:
             shortcuts = DEFAULT_SHORTCUTS
+        try:
+            rules = config_module.get_rules()
+        except AttributeError:
+            rules = None
+        try:
+            quotes = config_module.get_quotes()
+        except AttributeError:
+            quotes = None
         return cls(
             timetable=timetable,
             colorscheme=colorscheme,
             shortcuts=shortcuts,
+            rules=rules,
+            quotes=quotes,
             connection=connection,
             global_timedelta=global_timedelta,
             table_config=table_config,
