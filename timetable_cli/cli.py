@@ -189,9 +189,14 @@ def show_time_and_date(app):
             show_header=False,
             box=ROUNDED
             )
+    week_days = ["Monday", "Tuesday", "Wednesday", "Thursday",
+                 "Friday", "Saturday", "Sunday"]
+    time = app.now().time()
+    date = app.now().date()
     table.add_row(
-            app.now().time().isoformat()[:5],
-            app.now().date().isoformat()
+            time.isoformat()[:5],
+            week_days[date.weekday()],
+            date.isoformat()
             )
     rich.print(table)
 
