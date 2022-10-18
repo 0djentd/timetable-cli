@@ -58,11 +58,15 @@ INSERT INTO records (title='{self.title}', date='{self._timetable.date.isoformat
     def start_str(self):
         return format_time(self.start.time())
 
-    def time_status(self, datetime_input: datetime.datetime) -> ActivityTimeStatus:
-        if datetime_input > self.start and datetime_input > self.next().start:
-            result = ActivityTimeStatus.BEFORE
-        elif datetime_input > self.start and datetime_input < self.next().start:
-            result = ActivityTimeStatus.NOW
+    def time_status(
+            self,
+            datetime_input: datetime.datetime
+                    ) -> ActivityTimeStatus:
+        if datetime_input > self.start:
+            if datetime_input > self.next().start:
+                result = ActivityTimeStatus.BEFORE
+            else:
+                result = ActivityTimeStatus.NOW
         else:
             result = ActivityTimeStatus.AFTER
         logger.debug(result)

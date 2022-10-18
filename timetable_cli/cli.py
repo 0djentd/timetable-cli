@@ -10,7 +10,6 @@ from time import sleep
 import click
 import rich
 from rich.box import ROUNDED
-from rich.panel import Panel
 from appdirs import AppDirs
 from rich.table import Table
 
@@ -19,7 +18,7 @@ from timetable_cli.application import (Application, CategoriesRenderConfig,
                                        RenderConfig, TableConfig)
 from timetable_cli.enums import Columns
 from timetable_cli.render import (DEFAULT_COLUMNS_STR, get_activity_prop_str,
-                                  show, show_categories_list)
+                                  show)
 from timetable_cli.selectors import parse_selectors
 from timetable_cli.utils import format_time, parse_timedelta_str
 
