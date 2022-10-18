@@ -11,7 +11,7 @@ from timetable_cli.application import (Application, CategoriesRenderConfig,
 from timetable_cli.category import ActivityCategory
 from timetable_cli.colorscheme import DEFAULT_COLORSCHEME
 from timetable_cli.enums import ActivityTimeStatus, Columns
-from timetable_cli.utils import tag
+from timetable_cli.utils import format_time, parse_timedelta, tag
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -127,13 +127,17 @@ def get_activity_prop_str(
     match column:
         case Columns.START:
             element = add_tags(
-                str(activity.start_str()), "activity_start_time")
+                str(format_time(
+                    activity.start)), "activity_start_time")
         case Columns.END:
             element = add_tags(
-                str(activity.next().start_str()), "activity_end_time")
+                str(format_time(
+                    activity.next().start)), "activity_end_time")
         case Columns.TOTAL:
             element = add_tags(
-                str(activity.total_time_str()), "activity_total_time")
+                str(parse_timedelta(
+                    activity.total_time()).format_minutes()),
+                "activity_total_time")
         case Columns.ETA:
             now = application.now()
             if activity.time_status(now) == ActivityTimeStatus.BEFORE:
@@ -141,7 +145,9 @@ def get_activity_prop_str(
             elif activity.time_status(now) == ActivityTimeStatus.NOW:
                 eta = "now"
             else:
-                eta = activity.eta(application)
+                eta = parse_timedelta(
+                        activity.eta(application)
+                        ).format_minutes()
             element = add_tags(
                 str(eta), "activity_eta")
         case Columns.TITLE:

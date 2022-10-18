@@ -107,4 +107,5 @@ class TimetablePrototype(UserList):
         timetable = Timetable(activities)
         for activity in timetable:
             activity._timetable = timetable
+        timetable.date = date
         return timetable

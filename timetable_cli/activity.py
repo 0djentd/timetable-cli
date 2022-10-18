@@ -49,14 +49,8 @@ INSERT INTO records (title='{self.title}', date='{self._timetable.date.isoformat
             result = datetime.timedelta(seconds=result.seconds)
         return result
 
-    def total_time_str(self) -> str:
-        return parse_timedelta(self.total_time()).format_minutes()
-
-    def eta(self, application) -> str:
-        return parse_timedelta(self.start - application.now()).format_minutes()
-
-    def start_str(self):
-        return format_time(self.start.time())
+    def eta(self, application) -> datetime.timedelta:
+        return self.start - application.now()
 
     def time_status(
             self,

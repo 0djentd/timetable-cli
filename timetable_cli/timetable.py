@@ -12,6 +12,7 @@ logger.setLevel(logging.DEBUG)
 
 class Timetable(UserList):
     data: List[Activity]
+    date: datetime.date
 
     @property
     def categories(self) -> List[ActivityCategory]:
