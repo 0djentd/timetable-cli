@@ -29,6 +29,9 @@ _default_config_file = os.path.join(_default_config_dir, "config.py")
 _default_state_dir = appdirs.user_state_dir
 _default_db = os.path.join(_default_state_dir, "db.sqlite3")
 
+COMMANDS = ["show_date", "show_quotes",
+            "show_status", "show_activities", "show_rules"]
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -53,23 +56,24 @@ CREATE TABLE IF NOT EXISTS records (
 
 
 @click.command()
-@click.option("--config", required=True, default=_default_config_file)
-@click.option("--db", required=True, default=_default_db)
-@click.option("--debug", default=False, is_flag=True)
+@click.option("--config", default=_default_config_file, help="Config module")
+@click.option("--db", default=_default_db, help="Database file.")
+@click.option("--debug", default=False, is_flag=True, help="Show debug info.")
+@click.option("--add-empty-lines", default=False, is_flag=True)
 @click.option("-d", "--global-timedelta", default="")
-@click.option("-D", "--show-date", is_flag=True, default=False)
-@click.option("-S", "--show-status", is_flag=True, default=False)
-@click.option("-A", "--show-activities", is_flag=True, default=False)
+@click.option("-D", "--show-date", is_flag=True, default=False, help="Show current date and time.")
+@click.option("-S", "--show-status", is_flag=True, default=False, help="Show info about current and next activities.")
+@click.option("-A", "--show-activities", is_flag=True, default=False, help="Show activities table filtered by activities_selectors.")
 @click.argument("activities_selector", nargs=-1, type=str)
-@click.option("--list-categories", is_flag=True, default=True)
-@click.option("-c", "--columns", default=DEFAULT_COLUMNS_STR)
-@click.option("--table-kwargs", default="{}")
+@click.option("--list-categories", is_flag=True, default=True, help="Show activities categories when rendering activities table.")
+@click.option("-c", "--columns", default=DEFAULT_COLUMNS_STR, help="Columns to display when rendering activities table.")
+@click.option("--table-kwargs", default="{}", help="Activities table kwargs (json)")
 @click.option("--ignore-time-status", is_flag=True, default=False)
-@click.option("--combine-title-and-variation", is_flag=True, default=True)
-@click.option("-R", "--show-rules", is_flag=True, default=False)
-@click.option("-r", "--rules-list", default=False, is_flag=True)
-@click.option("-Q", "--show-quotes", is_flag=True, default=False)
-@click.option("-q", "--quotes-list", default=False, is_flag=True)
+@click.option("--combine-title-and-variation", is_flag=True, default=True, help="Append activity variation to title when rendering activities table.")
+@click.option("-R", "--show-rules", is_flag=True, default=False, help="Show random rule.")
+@click.option("-r", "--rules-list", default=False, is_flag=True, help="Show rules table instead of random rule.")
+@click.option("-Q", "--show-quotes", is_flag=True, default=False, help="Show random quote.")
+@click.option("-q", "--quotes-list", default=False, is_flag=True, help="Show quotes table instead of random quote.")
 @click.option("-W", "--watch", is_flag=True, default=False)
 @click.option("--watch-text", default="timetable-cli")
 @click.option("--watch-interval", default=5)
@@ -79,7 +83,6 @@ CREATE TABLE IF NOT EXISTS records (
 @click.option("--watch-voice", default=False, is_flag=True)
 @click.option("--watch-voice-cmd", default="espeak -s 0.1 -g 5 -p 1")
 @click.option("--watch-notify-eta", default="120m 60m 30m")
-@click.option("--watch-table-selectors", default="-3..3")
 @click.pass_context
 def command(context, activities_selector, **kwargs):
     if kwargs["debug"]:
@@ -107,7 +110,10 @@ def command(context, activities_selector, **kwargs):
     context.obj = app
 
     def show_info():
-        for key, val in kwargs.items():
+        kwargs_filtered = {
+            key: val for key, val in kwargs.items() if key in COMMANDS and val
+        }
+        for index, (key, val) in enumerate(kwargs_filtered.items()):
             if not val:
                 continue
             match key:
@@ -128,6 +134,8 @@ def command(context, activities_selector, **kwargs):
                         show_rules(app)
                     else:
                         show_random_rule(app)
+            if kwargs["add_empty_lines"] and index != len(kwargs_filtered) - 1:
+                rich.print("")
 
     if not kwargs["watch"]:
         show_info()
