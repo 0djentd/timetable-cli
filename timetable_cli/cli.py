@@ -21,7 +21,7 @@ from timetable_cli.enums import Columns
 from timetable_cli.render import (DEFAULT_COLUMNS_STR, get_activity_prop_str,
                                   show)
 from timetable_cli.selectors import parse_selectors
-from timetable_cli.utils import parse_timedelta_str, tag
+from timetable_cli.utils import parse_timedelta_str
 
 appdirs = AppDirs(appname="timetable_cli")
 _default_config_dir = appdirs.user_config_dir
@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def get_db_connection(db_filename):
+def _get_db_connection(db_filename):
     connection = sqlite3.connect(
         db_filename, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
     )
@@ -90,7 +90,7 @@ def command(context, activities_selector, **kwargs):
     app = Application.from_config_module(
         config_module=imp.load_source(
             "config_module", kwargs["config"]),
-        connection=get_db_connection(kwargs["db"]),
+        connection=_get_db_connection(kwargs["db"]),
         global_timedelta=parse_timedelta_str(
             kwargs["global_timedelta"]),
         table_config=TableConfig(
@@ -109,42 +109,15 @@ def command(context, activities_selector, **kwargs):
         app.config_module.get_shortcuts())
     context.obj = app
 
-    def show_info():
-        kwargs_filtered = {
-            key: val for key, val in kwargs.items() if key in COMMANDS and val
-        }
-        for index, (key, val) in enumerate(kwargs_filtered.items()):
-            if not val:
-                continue
-            match key:
-                case "show_date":
-                    show_time_and_date(app)
-                case "show_quotes":
-                    if kwargs["quotes_list"]:
-                        show_quotes(app)
-                    else:
-                        show_random_quote(app)
-                case "show_status":
-                    show_status(app, app.timetable)
-                case "show_activities":
-                    show_activities(app, activities_selector)
-                case "show_rules":
-                    if kwargs["rules_list"]:
-                        show_rules(app)
-                    else:
-                        show_random_rule(app)
-            if kwargs["add_empty_lines"] and index != len(kwargs_filtered) - 1:
-                rich.print("")
-
     if not kwargs["watch"]:
-        show_info()
+        show_info(app, activities_selector, **kwargs)
     else:
         previous_activity = app.timetable.for_datetime(app.now())
         while True:
             current_activity = app.timetable.for_datetime(app.now())
             if kwargs["watch_clear_screen"]:
                 clear_screen()
-            show_info()
+            show_info(app, activities_selector, **kwargs)
             if previous_activity != current_activity:
                 next_activity = current_activity.next()
                 text = "timetable-cli"
@@ -156,8 +129,8 @@ def command(context, activities_selector, **kwargs):
                         eta = next_activity.eta(app)
                         if eta in kwargs["watch_notify_eta"].split():
                             if kwargs["watch_notification"]:
-                                command = kwargs["watch_notification_cmd"].split(
-                                )
+                                command = kwargs["watch_notification_cmd"
+                                                 ].split()
                                 command.extend(
                                     [f'"{text}"',
                                         f'"{title}, ETA is {eta}"']
@@ -181,6 +154,34 @@ def command(context, activities_selector, **kwargs):
                         subprocess.call(command)
             previous_activity = current_activity
             sleep(kwargs["watch_interval"])
+
+
+def show_info(app, activities_selector, **kwargs):
+    kwargs_filtered = {
+        key: val for key, val in kwargs.items() if key in COMMANDS and val
+    }
+    for index, (key, val) in enumerate(kwargs_filtered.items()):
+        if not val:
+            continue
+        match key:
+            case "show_date":
+                show_time_and_date(app)
+            case "show_quotes":
+                if kwargs["quotes_list"]:
+                    show_quotes(app)
+                else:
+                    show_random_quote(app)
+            case "show_status":
+                show_status(app, app.timetable)
+            case "show_activities":
+                show_activities(app, activities_selector)
+            case "show_rules":
+                if kwargs["rules_list"]:
+                    show_rules(app)
+                else:
+                    show_random_rule(app)
+        if kwargs["add_empty_lines"] and index != len(kwargs_filtered) - 1:
+            rich.print("")
 
 
 def show_activities(app, selectors):
@@ -274,8 +275,15 @@ def show_random_quote(app):
 
 def show_quotes(app):
     quotes = app.quotes
+    if not quotes:
+        return
+    table = Table(box=ROUNDED)
+    table.add_column("Quote")
+    table.add_column("Author")
+    table.add_column("Year")
     for quote in quotes:
-        quote.show(app)
+        table.add_row(quote.text, quote.author, str(quote.year))
+    rich.print(table)
 
 
 def clear_screen():
