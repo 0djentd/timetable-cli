@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS records (
 @click.option("--list-categories", is_flag=True, default=True)
 @click.option("-c", "--columns", default=DEFAULT_COLUMNS_STR)
 @click.option("--table-kwargs", default="{}")
-@click.option("-T", "--ignore-time-status", is_flag=True, default=False)
+@click.option("--ignore-time-status", is_flag=True, default=False)
 @click.option("--combine-title-and-variation", is_flag=True, default=True)
 @click.pass_context
 def commands(context, config, db, debug, global_timedelta, list_categories, **kwargs):
@@ -178,14 +178,6 @@ def watch(
         sleep(interval)
 
 
-@commands.command("status")
-@click.pass_context
-def status(context):
-    app = context.obj
-    timetable = app.timetable
-    show_status(app, timetable)
-
-
 def show_time_and_date(app):
     table = Table(
             # show_edge=False,
@@ -226,12 +218,6 @@ def show_status(app: Application, timetable):
     rich.print(table)
 
 
-@commands.command("rules")
-@click.pass_context
-def show_rules_cmd(context):
-    show_rules(context.obj)
-
-
 def show_random_rule(app):
     rules = app.rules
     if not rules:
@@ -248,12 +234,6 @@ def show_rules(app):
     for rule in rules:
         table.add_row(rule)
     rich.print(table)
-
-
-@commands.command("quote")
-@click.pass_context
-def show_quote_cmd(context):
-    show_random_quote(context.obj)
 
 
 def show_random_quote(app):
