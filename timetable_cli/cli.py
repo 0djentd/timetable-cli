@@ -7,6 +7,7 @@ import random
 import sqlite3
 import subprocess
 from time import sleep
+from typing import List
 
 import click
 import rich
@@ -21,6 +22,7 @@ from timetable_cli.enums import Columns
 from timetable_cli.render import (DEFAULT_COLUMNS_STR, get_activity_prop_str,
                                   show)
 from timetable_cli.selectors import parse_selectors
+from timetable_cli.timetable import Timetable
 from timetable_cli.utils import parse_timedelta_str
 
 appdirs = AppDirs(appname="timetable_cli")
@@ -37,9 +39,10 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def _get_db_connection(db_filename):
+def _get_db_connection(db_filename: str):
     connection = sqlite3.connect(
-        db_filename, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
+        db_filename, detect_types=sqlite3.PARSE_DECLTYPES
+        | sqlite3.PARSE_COLNAMES
     )
     cursor = connection.cursor()
     cursor.executescript(
@@ -60,33 +63,38 @@ CREATE TABLE IF NOT EXISTS records (
 @click.option("--db", default=_default_db, help="Database file.")
 @click.option("--debug", default=False, is_flag=True, help="Show debug info.")
 @click.option("--add-empty-lines", default=False, is_flag=True)
+@click.option("--clear-screen", default=False, is_flag=True)
+@click.option("--default-activities-selectors", default="..")
 @click.option("-d", "--global-timedelta", default="")
 @click.option("-D", "--show-date", is_flag=True, default=False, help="Show current date and time.")
 @click.option("-S", "--show-status", is_flag=True, default=False, help="Show info about current and next activities.")
 @click.option("-A", "--show-activities", is_flag=True, default=False, help="Show activities table filtered by activities_selectors.")
 @click.argument("activities_selector", nargs=-1, type=str)
-@click.option("--list-categories", is_flag=True, default=True, help="Show activities categories when rendering activities table.")
+@click.option("--list-categories", is_flag=True, default=False, help="Show activities categories when rendering activities table.")
 @click.option("-c", "--columns", default=DEFAULT_COLUMNS_STR, help="Columns to display when rendering activities table.")
 @click.option("--table-kwargs", default="{}", help="Activities table kwargs (json)")
 @click.option("--ignore-time-status", is_flag=True, default=False)
-@click.option("--combine-title-and-variation", is_flag=True, default=True, help="Append activity variation to title when rendering activities table.")
+@click.option("--combine-title-and-variation", is_flag=True, default=False, help="Append activity variation to title when rendering activities table.")
 @click.option("-R", "--show-rules", is_flag=True, default=False, help="Show random rule.")
 @click.option("-r", "--rules-list", default=False, is_flag=True, help="Show rules table instead of random rule.")
 @click.option("-Q", "--show-quotes", is_flag=True, default=False, help="Show random quote.")
 @click.option("-q", "--quotes-list", default=False, is_flag=True, help="Show quotes table instead of random quote.")
 @click.option("-W", "--watch", is_flag=True, default=False)
-@click.option("--watch-text", default="timetable-cli")
 @click.option("--watch-interval", default=5)
-@click.option("--watch-clear-screen", default=False, is_flag=True)
 @click.option("--watch-notification", default=False, is_flag=True)
+@click.option("--watch-notification-text", default="timetable-cli")
 @click.option("--watch-notification-cmd", default="notify-send --expire-time 60000")
 @click.option("--watch-voice", default=False, is_flag=True)
 @click.option("--watch-voice-cmd", default="espeak -s 0.1 -g 5 -p 1")
 @click.option("--watch-notify-eta", default="120m 60m 30m")
 @click.pass_context
-def command(context, activities_selector, **kwargs):
+def command(context: click.Context, activities_selector: List[str], **kwargs):
     if kwargs["debug"]:
         logging.basicConfig(level=logging.DEBUG)
+    if not activities_selector:
+        if kwargs["default_activities_selectors"]:
+            activities_selector = kwargs["default_activities_selectors"
+                                         ].split()
     app = Application.from_config_module(
         config_module=imp.load_source(
             "config_module", kwargs["config"]),
@@ -105,58 +113,68 @@ def command(context, activities_selector, **kwargs):
             list_categories=kwargs["list_categories"],
         ),
     )
-    selectors.ShortcutSelector.shortcuts.update(
-        app.config_module.get_shortcuts())
     context.obj = app
 
-    if not kwargs["watch"]:
-        show_info(app, activities_selector, **kwargs)
+    try:
+        selectors.ShortcutSelector.shortcuts.update(
+            app.config_module.get_shortcuts())
+    except AttributeError:
+        pass
+
+    if kwargs["clear_screen"]:
+        clear_screen()
+    if kwargs["watch"]:
+        watch(app, activities_selector, **kwargs)
     else:
-        previous_activity = app.timetable.for_datetime(app.now())
-        while True:
-            current_activity = app.timetable.for_datetime(app.now())
-            if kwargs["watch_clear_screen"]:
-                clear_screen()
-            show_info(app, activities_selector, **kwargs)
+        show_info(app, activities_selector, **kwargs)
+
+
+def watch(app: Application, activities_selector: List[str], **kwargs):
+    previous_activity = app.timetable.for_datetime(app.now())
+    while True:
+        current_activity = app.timetable.for_datetime(app.now())
+        if kwargs["clear_screen"]:
+            clear_screen()
+        show_info(app, activities_selector, **kwargs)
+        if previous_activity != current_activity:
+            next_activity = current_activity.next()
+            text = kwargs["watch_notification_text"]
+            title = current_activity.title
+            if current_activity.variation:
+                title += " " + current_activity.variation
+            if kwargs["watch_notify_eta"]:
+                if current_activity != app.timetable[-1]:
+                    eta = next_activity.eta(app)
+                    if eta in kwargs["watch_notify_eta"].split():
+                        if kwargs["watch_notification"]:
+                            command = kwargs["watch_notification_cmd"
+                                             ].split()
+                            command.extend(
+                                [f'"{text}"',
+                                    f'"{title}, ETA is {eta}"']
+                            )
+                            subprocess.call(command)
+                        if kwargs["watch_voice"]:
+                            command = kwargs["watch_voice_cmd"].split(
+                            )
+                            command.extend(
+                                [f'"{text} says {title}, ETA is {eta}"'])
+                            subprocess.call(command)
             if previous_activity != current_activity:
-                next_activity = current_activity.next()
-                text = "timetable-cli"
-                title = current_activity.title
-                if current_activity.variation:
-                    title += " " + current_activity.variation
-                if kwargs["watch_notify_eta"]:
-                    if current_activity != app.timetable[-1]:
-                        eta = next_activity.eta(app)
-                        if eta in kwargs["watch_notify_eta"].split():
-                            if kwargs["watch_notification"]:
-                                command = kwargs["watch_notification_cmd"
-                                                 ].split()
-                                command.extend(
-                                    [f'"{text}"',
-                                        f'"{title}, ETA is {eta}"']
-                                )
-                                subprocess.call(command)
-                            if kwargs["watch_voice"]:
-                                command = kwargs["watch_voice_cmd"].split(
-                                )
-                                command.extend(
-                                    [f'"{text} says {title}, ETA is {eta}"'])
-                                subprocess.call(command)
-                if previous_activity != current_activity:
-                    if kwargs["watch_notification"]:
-                        command = kwargs["watch_notification_cmd"].split(
-                        )
-                        command.extend([f'"{text}"', f'"{title}"'])
-                        subprocess.call(command)
-                    if kwargs["watch_voice"]:
-                        command = kwargs["watch_voice_cmd"].split()
-                        command.extend([f'"{text} says {title}"'])
-                        subprocess.call(command)
-            previous_activity = current_activity
-            sleep(kwargs["watch_interval"])
+                if kwargs["watch_notification"]:
+                    command = kwargs["watch_notification_cmd"].split(
+                    )
+                    command.extend([f'"{text}"', f'"{title}"'])
+                    subprocess.call(command)
+                if kwargs["watch_voice"]:
+                    command = kwargs["watch_voice_cmd"].split()
+                    command.extend([f'"{text} says {title}"'])
+                    subprocess.call(command)
+        previous_activity = current_activity
+        sleep(kwargs["watch_interval"])
 
 
-def show_info(app, activities_selector, **kwargs):
+def show_info(app: Application, activities_selector: List[str], **kwargs):
     kwargs_filtered = {
         key: val for key, val in kwargs.items() if key in COMMANDS and val
     }
@@ -184,11 +202,9 @@ def show_info(app, activities_selector, **kwargs):
             rich.print("")
 
 
-def show_activities(app, selectors):
-    if len(selectors) == 0:
-        selectors = ["0"]
+def show_activities(app: Application, selectors_str_list: List[str]):
     timetable = app.timetable
-    selectors = parse_selectors(selectors)
+    selectors = parse_selectors(selectors_str_list)
     logger.debug(selectors)
     activities = []
     for selector in selectors:
@@ -202,7 +218,7 @@ def show_activities(app, selectors):
     )
 
 
-def show_time_and_date(app):
+def show_time_and_date(app: Application):
     table = Table(
         # show_edge=False,
         show_header=False,
@@ -224,7 +240,7 @@ def show_time_and_date(app):
     rich.print(table)
 
 
-def show_status(app: Application, timetable):
+def show_status(app: Application, timetable: Timetable):
     activity_1 = timetable.for_datetime(app.now())
     activity_2 = activity_1.next()
     a1_title = get_activity_prop_str(
@@ -246,7 +262,7 @@ def show_status(app: Application, timetable):
     rich.print(table)
 
 
-def show_random_rule(app):
+def show_random_rule(app: Application):
     rules = app.rules
     if not rules:
         return
@@ -254,7 +270,7 @@ def show_random_rule(app):
     rich.print(rules[index])
 
 
-def show_rules(app):
+def show_rules(app: Application):
     rules = app.rules
     if not rules:
         return
@@ -264,7 +280,7 @@ def show_rules(app):
     rich.print(table)
 
 
-def show_random_quote(app):
+def show_random_quote(app: Application):
     quotes = app.quotes
     if not quotes:
         return
@@ -273,7 +289,7 @@ def show_random_quote(app):
     quote.show(app)
 
 
-def show_quotes(app):
+def show_quotes(app: Application):
     quotes = app.quotes
     if not quotes:
         return

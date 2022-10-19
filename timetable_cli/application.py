@@ -42,7 +42,7 @@ class Application:
     config_module: ModuleType
     categories_render_config: CategoriesRenderConfig
     rules: Optional[List[str]] = None
-    quotes: Optional[List[str]] = None
+    quotes: Optional[List] = None
 
     def today(self):
         return self.now().date()
