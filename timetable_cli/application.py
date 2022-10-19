@@ -39,6 +39,7 @@ class Application:
     global_timedelta: datetime.timedelta
     table_config: TableConfig
     render_config: RenderConfig
+    config_module: ModuleType
     categories_render_config: CategoriesRenderConfig
     rules: Optional[List[str]] = None
     quotes: Optional[List[str]] = None
@@ -86,6 +87,7 @@ class Application:
             shortcuts=shortcuts,
             rules=rules,
             quotes=quotes,
+            config_module=config_module,
             connection=connection,
             global_timedelta=global_timedelta,
             table_config=table_config,

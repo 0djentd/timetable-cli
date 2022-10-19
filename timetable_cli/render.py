@@ -127,17 +127,18 @@ def get_activity_prop_str(
     match column:
         case Columns.START:
             element = add_tags(
-                str(format_time(
-                    activity.start)), "activity_start_time")
+                str(format_time(activity.start)), "activity_start_time")
         case Columns.END:
             element = add_tags(
-                str(format_time(
-                    activity.next().start)), "activity_end_time")
+                str(format_time(activity.next().start)
+                    ), "activity_end_time"
+            )
         case Columns.TOTAL:
             element = add_tags(
                 str(parse_timedelta(
                     activity.total_time()).format_minutes()),
-                "activity_total_time")
+                "activity_total_time",
+            )
         case Columns.ETA:
             now = application.now()
             if activity.time_status(now) == ActivityTimeStatus.BEFORE:
@@ -145,11 +146,9 @@ def get_activity_prop_str(
             elif activity.time_status(now) == ActivityTimeStatus.NOW:
                 eta = "now"
             else:
-                eta = parse_timedelta(
-                        activity.eta(application)
-                        ).format_minutes()
-            element = add_tags(
-                str(eta), "activity_eta")
+                eta = parse_timedelta(activity.eta(
+                    application)).format_minutes()
+            element = add_tags(str(eta), "activity_eta")
         case Columns.TITLE:
             title_str = add_tags(
                 str(activity.title), "activity_title")

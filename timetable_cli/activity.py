@@ -52,10 +52,7 @@ INSERT INTO records (title='{self.title}', date='{self._timetable.date.isoformat
     def eta(self, application) -> datetime.timedelta:
         return self.start - application.now()
 
-    def time_status(
-            self,
-            datetime_input: datetime.datetime
-                    ) -> ActivityTimeStatus:
+    def time_status(self, datetime_input: datetime.datetime) -> ActivityTimeStatus:
         if datetime_input > self.start:
             if datetime_input > self.next().start:
                 result = ActivityTimeStatus.BEFORE
