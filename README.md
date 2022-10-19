@@ -1,4 +1,8 @@
 # timetable-cli
+## Installation
+```
+pip install timetable-cli
+```
 ## How to use
 ```
 Usage: timetable-cli [OPTIONS] [ACTIVITIES_SELECTOR]...
