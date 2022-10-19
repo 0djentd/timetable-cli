@@ -26,4 +26,8 @@ DEFAULT_COLORSCHEME = {
     "activity_variation_after": "white",
     "activity_status_after": "white",
     "activity_stats_after": "white",
+    # quotes
+    "quote_text": "italic",
+    # rules
+    "rule_text": "bold",
 }

@@ -121,8 +121,7 @@ def command(context, activities_selector, **kwargs):
                     show_time_and_date(app)
                 case "show_quotes":
                     if kwargs["quotes_list"]:
-                        # show_quotes(app)
-                        pass
+                        show_quotes(app)
                     else:
                         show_random_quote(app)
                 case "show_status":
@@ -270,7 +269,13 @@ def show_random_quote(app):
         return
     index = random.randint(0, len(quotes) - 1)
     quote = quotes[index]
-    rich.print(tag(quote, "italic"))
+    quote.show(app)
+
+
+def show_quotes(app):
+    quotes = app.quotes
+    for quote in quotes:
+        quote.show(app)
 
 
 def clear_screen():
