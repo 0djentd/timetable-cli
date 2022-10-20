@@ -11,6 +11,7 @@ logger.setLevel(logging.DEBUG)
 
 
 class Timetable(UserList):
+    """Activities list."""
     data: List[Activity]
     date: datetime.date
 

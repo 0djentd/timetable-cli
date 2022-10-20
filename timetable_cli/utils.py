@@ -3,7 +3,7 @@ import logging
 import re
 import string
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 
 from rich.color import ANSI_COLOR_NAMES
 from rich.default_styles import DEFAULT_STYLES
@@ -14,14 +14,12 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def now(global_timedelta: Optional[datetime.timedelta] = None):
-    _now = datetime.datetime.now()
-    if global_timedelta:
-        return _now + global_timedelta
-    return _now
-
-
 def time_from_time_str(time_str) -> datetime.time:
+    """Example:
+    >>> import datetime
+    >>> time_from_time_str("07:30") == datetime.time(07, 30)
+    <<< True
+    """
     return datetime.time(*[int(x) for x in re.findall(r"\d\d", time_str)])
 
 
@@ -30,6 +28,7 @@ def uppercase_letters_list() -> List[str]:
 
 
 def remove_tags(input_str: str) -> str:
+    """Removes all tags."""
     return re.sub(r"\[/?[^\ ]]*\]", "", input_str)
 
 
@@ -40,6 +39,7 @@ def tag(input_str: str, tag: str) -> str:
 def compose_datetime(
     input_date: datetime.date, input_time: datetime.time
 ) -> datetime.datetime:
+    """Combine datetime.date and datetime.time into datetime.datetime"""
     return datetime.datetime(
         year=input_date.year,
         month=input_date.month,
@@ -63,9 +63,8 @@ def check_colorscheme(colorscheme: dict):
                 element not in ANSI_COLOR_NAMES.keys()
                 and element not in DEFAULT_STYLES.keys()
             ):
-                raise ValueError(
-                    f"Key '{element}' not in 'ANSI_COLOR_NAMES' or 'DEFAULT_STYLES'"
-                )
+                raise ValueError(f"Key '{element}' not in \
+                        'ANSI_COLOR_NAMES' or 'DEFAULT_STYLES'")
 
 
 @dataclass
@@ -140,11 +139,11 @@ def parse_timedelta_str(input_str: str) -> datetime.timedelta:
     return datetime.timedelta(**kwargs)
 
 
-def format_time(data: datetime.time):
+def format_time(data: datetime.time) -> str:
+    """Returns time in format of HH:MM"""
     def fix_number(number):
         number = str(number)
         if len(number) == 1:
             number = "0" + number
         return number
-
     return f"{fix_number(data.hour)}:{fix_number(data.minute)}"

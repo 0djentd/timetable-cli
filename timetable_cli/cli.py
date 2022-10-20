@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def _get_db_connection(db_filename: str):
+def _get_db_connection(db_filename: str) -> sqlite3.Connection:
     connection = sqlite3.connect(
         db_filename, detect_types=sqlite3.PARSE_DECLTYPES
         | sqlite3.PARSE_COLNAMES
@@ -88,7 +88,8 @@ CREATE TABLE IF NOT EXISTS records (
 @click.option("--watch-voice-cmd", default="espeak -s 0.1 -g 5 -p 1")
 @click.option("--watch-notify-eta", default="120m 60m 30m")
 @click.pass_context
-def command(context: click.Context, activities_selector: List[str], **kwargs):
+def cli(context: click.Context, activities_selector: List[str], **kwargs):
+    """timetable-cli"""
     if kwargs["debug"]:
         logging.basicConfig(level=logging.DEBUG)
     if not activities_selector:
@@ -130,6 +131,7 @@ def command(context: click.Context, activities_selector: List[str], **kwargs):
 
 
 def watch(app: Application, activities_selector: List[str], **kwargs):
+    """Render in a loop and display notifications."""
     previous_activity = app.timetable.for_datetime(app.now())
     while True:
         current_activity = app.timetable.for_datetime(app.now())
@@ -175,6 +177,7 @@ def watch(app: Application, activities_selector: List[str], **kwargs):
 
 
 def show_info(app: Application, activities_selector: List[str], **kwargs):
+    """Show info about timetable."""
     kwargs_filtered = {
         key: val for key, val in kwargs.items() if key in COMMANDS and val
     }
@@ -203,6 +206,7 @@ def show_info(app: Application, activities_selector: List[str], **kwargs):
 
 
 def show_activities(app: Application, selectors_str_list: List[str]):
+    """Show activities filtered by selectors_str_list."""
     timetable = app.timetable
     selectors = parse_selectors(selectors_str_list)
     logger.debug(selectors)
@@ -219,6 +223,7 @@ def show_activities(app: Application, selectors_str_list: List[str]):
 
 
 def show_time_and_date(app: Application):
+    """Show current time and date."""
     table = Table(
         # show_edge=False,
         show_header=False,
@@ -241,6 +246,7 @@ def show_time_and_date(app: Application):
 
 
 def show_status(app: Application, timetable: Timetable):
+    """Show current and next activities."""
     activity_1 = timetable.for_datetime(app.now())
     activity_2 = activity_1.next()
     a1_title = get_activity_prop_str(
@@ -263,6 +269,7 @@ def show_status(app: Application, timetable: Timetable):
 
 
 def show_random_rule(app: Application):
+    """Show one random rule."""
     rules = app.rules
     if not rules:
         return
@@ -271,6 +278,7 @@ def show_random_rule(app: Application):
 
 
 def show_rules(app: Application):
+    """Show all rules."""
     rules = app.rules
     if not rules:
         return
@@ -281,6 +289,7 @@ def show_rules(app: Application):
 
 
 def show_random_quote(app: Application):
+    """Show one random quote."""
     quotes = app.quotes
     if not quotes:
         return
@@ -290,6 +299,7 @@ def show_random_quote(app: Application):
 
 
 def show_quotes(app: Application):
+    """Show all quotes."""
     quotes = app.quotes
     if not quotes:
         return
@@ -303,6 +313,7 @@ def show_quotes(app: Application):
 
 
 def clear_screen():
+    """Clears screen."""
     if platform.system() == "Linux":
         subprocess.call("clear")
     else:
@@ -310,4 +321,4 @@ def clear_screen():
 
 
 if __name__ == "__main__":
-    command()
+    cli()

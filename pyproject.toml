@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "timetable_cli"}]
 
 [tool.poetry.scripts]
-timetable-cli = "timetable_cli.cli:command"
+timetable-cli = "timetable_cli.cli:cli"
 
 [tool.poetry.dependencies]
 python = "^3.10"

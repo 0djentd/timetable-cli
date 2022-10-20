@@ -1,4 +1,5 @@
 from enum import Enum, auto, unique
+from typing import List
 
 
 @unique
@@ -10,6 +11,7 @@ class ActivityTimeStatus(Enum):
 
 @unique
 class Columns(Enum):
+    """Columns to use in activities table."""
     START = "Start"
     END = "End"
     TOTAL = "Total"
@@ -19,7 +21,8 @@ class Columns(Enum):
     STATUS = "Status"
 
     @classmethod
-    def parse_str(cls, input_str: str):
+    def parse_str(cls, input_str: str) -> List:
+        """Parse column names and return list of columns."""
         result = []
         words_1 = input_str.split(",")
         words_2 = input_str.split()

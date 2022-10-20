@@ -167,6 +167,7 @@ def get_activity_prop_str(
 def show_categories_list(
     data: List[ActivityCategory],
 ):
+    """Displays list of activities categories."""
     table = Table(show_header=False, show_edge=False)
     categories_str_list: List[str] = []
     for category in data:

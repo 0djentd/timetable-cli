@@ -10,6 +10,7 @@ logger.setLevel(logging.DEBUG)
 
 @dataclass
 class ActivityCategory:
+    """Activities category"""
     title: str
     colorscheme: dict
 

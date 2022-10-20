@@ -63,6 +63,7 @@ class ComplexSelector(SimpleSelector):
 
 
 class SelectorNumber(SimpleSelector):
+    """Select activity starting from first activity."""
     _examples = ["#123", "#0", "#-123"]
     RE = r"(?<=^#)-?\d+$"
     FULL_RE = r"^#-?\d+$"
@@ -73,6 +74,7 @@ class SelectorNumber(SimpleSelector):
 
 
 class SelectorCentered(SimpleSelector):
+    """Select activity starting from current activity."""
     _examples = ["123", "0", "-123"]
     _VALUE_TYPE = int
     RE = r"^-?\d+$"
@@ -92,6 +94,7 @@ _SIMPLE_SELECTOR_RE = f"({simple_selectors_re_all})"
 
 
 class RangeSelector(ComplexSelector):
+    """Select multiple activities."""
     _examples = ["now..123", "-123..", "#0..#123"]
     # RE = "^" + _SIMPLE_SELECTOR_RE + r"\.\." + _SIMPLE_SELECTOR_RE + "$"
     _VALUE_TYPE = str
@@ -138,6 +141,7 @@ class RangeSelector(ComplexSelector):
 
 
 class TitleSelector(SimpleSelector):
+    """Select activity by activity title."""
     RE = r"^.*$"
     FULL_RE = r"^.*$"
     _VALUE_TYPE = str
@@ -151,6 +155,7 @@ class TitleSelector(SimpleSelector):
 
 
 class TitleSelectorMultipleActivities(TitleSelector):
+    """Select activities by activity title."""
     RE = r"^.*(?=\+$)"
     FULL_RE = r"^.*\+$"
     _VALUE_TYPE = str
@@ -165,6 +170,7 @@ class TitleSelectorMultipleActivities(TitleSelector):
 
 
 class ShortcutSelector(ComplexSelector):
+    """Substitute shortcut with selector(s)."""
     shortcuts = DEFAULT_SHORTCUTS
     _VALUE_TYPE = str
 

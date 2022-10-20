@@ -1,8 +1,8 @@
+import logging
 from dataclasses import dataclass
 from typing import Optional
 
 import rich
-import logging
 
 from timetable_cli.application import Application
 from timetable_cli.utils import tag
