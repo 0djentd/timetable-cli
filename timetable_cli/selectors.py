@@ -80,7 +80,7 @@ class SelectorCentered(SimpleSelector):
 
     def get(self, timetable, datetime_input) -> List[Activity]:
         center = timetable.for_datetime(datetime_input)
-        return [timetable.centered(center)[int(self.value)]]
+        return [timetable.centered(center)[self.value]]
 
 
 simple_selectors = [SelectorNumber, SelectorCentered]
@@ -131,8 +131,10 @@ class RangeSelector(ComplexSelector):
         i_2 = get_index(activity_2)
         if i_2:
             i_2 += 1
-        result = list(timetable[i_1:i_2])
-        return result
+        if i_1 and i_2:
+            if i_1 > i_2:
+                return list(timetable[i_1:]) + list(timetable[:i_2])
+        return list(timetable[i_1:i_2])
 
 
 class TitleSelector(SimpleSelector):
