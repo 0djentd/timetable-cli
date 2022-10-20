@@ -24,7 +24,7 @@ def _columns_str_from_list(columns):
 DEFAULT_COLUMNS_STR = _columns_str_from_list(list(Columns))
 
 
-def show(
+def show_activities_table(
     data: Activity | List[Activity],
     application: Application,
     table_config: TableConfig,

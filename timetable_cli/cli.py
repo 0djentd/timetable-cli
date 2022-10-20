@@ -20,7 +20,7 @@ from timetable_cli.application import (Application, CategoriesRenderConfig,
                                        RenderConfig, TableConfig)
 from timetable_cli.enums import Columns
 from timetable_cli.render import (DEFAULT_COLUMNS_STR, get_activity_prop_str,
-                                  show)
+                                  show_activities_table)
 from timetable_cli.selectors import parse_selectors
 from timetable_cli.timetable import Timetable
 from timetable_cli.utils import parse_timedelta_str
@@ -209,7 +209,7 @@ def show_activities(app: Application, selectors_str_list: List[str]):
     activities = []
     for selector in selectors:
         activities += selector.get(timetable, app.now())
-    show(
+    show_activities_table(
         activities,
         app,
         app.table_config,
