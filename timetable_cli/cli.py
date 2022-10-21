@@ -87,9 +87,12 @@ CREATE TABLE IF NOT EXISTS records (
 @click.option("--watch-voice", default=False, is_flag=True)
 @click.option("--watch-voice-cmd", default="espeak -s 0.1 -g 5 -p 1")
 @click.option("--watch-notify-eta", default="120m 60m 30m")
+@click.option("-C", "--check-activities", is_flag=True, default=False, help="Check activities.")
+@click.option("-i", "--check-activities-interactively", default=False, is_flag=True, help="Check activities interactively.")
+@click.option("-c", "--check-activities-already-checked", default=False, is_flag=True, help="Check already checked activities.")
+@click.option("-s", "--check-activities-status", default=-1, help="Check activities status.")
 @click.pass_context
 def cli(context: click.Context, activities_selector: List[str], **kwargs):
-    """timetable-cli"""
     if kwargs["debug"]:
         logging.basicConfig(level=logging.DEBUG)
     if not activities_selector:

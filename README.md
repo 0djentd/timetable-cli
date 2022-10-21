@@ -39,5 +39,12 @@ Options:
   --watch-voice
   --watch-voice-cmd TEXT
   --watch-notify-eta TEXT
+  -C, --check-activities          Check activities.
+  -i, --check-activities-interactively
+                                  Check activities interactively.
+  -c, --check-activities-already-checked
+                                  Check already checked activities.
+  -s, --check-activities-status INTEGER
+                                  Check activities status.
   --help                          Show this message and exit.
 ```
