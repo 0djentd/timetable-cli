@@ -281,8 +281,7 @@ def show_status(
     if max_status_length:
         if len(line) > max_status_length - 3:
             line = line[:max_status_length - 3] + "..."
-    print(line)
-
+    print(line.removesuffix("\n"))
 
 
 def show_random_rule(app: Application):
