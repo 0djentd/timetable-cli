@@ -68,7 +68,7 @@ python-versions = "*"
 
 [[package]]
 name = "interactive-select"
-version = "0.2.0"
+version = "0.3.0"
 description = ""
 category = "main"
 optional = false
@@ -173,7 +173,7 @@ python-versions = ">=3.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "0e6e5f376435c8679298b1b5b5628d53d54f16e92b3119e33e5ce468a1eff7ab"
+content-hash = "53d7157816325c21d95d35ec391f27ca3c4e7f4404fed0a29fd477761bcf16fd"
 
 [metadata.files]
 appdirs = [
@@ -205,8 +205,8 @@ iniconfig = [
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
 ]
 interactive-select = [
-    {file = "interactive-select-0.2.0.tar.gz", hash = "sha256:43fedd9899ba7f8c588d2782ae79ef419491cd3f028a4f9225d84c06e9e8fa80"},
-    {file = "interactive_select-0.2.0-py3-none-any.whl", hash = "sha256:741150cf6d49992f493409ef6500133eaa59f5b432547240e0f404930a25215e"},
+    {file = "interactive-select-0.3.0.tar.gz", hash = "sha256:26ba29b7ab7d4c19c2e752130072cf54019ceba6d66face93cda7326751c1360"},
+    {file = "interactive_select-0.3.0-py3-none-any.whl", hash = "sha256:bfc1893889ec895812bde37ad6deec5da3b7bbf55b9f87ccf3584d1a3b4c839a"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
