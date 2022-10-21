@@ -17,6 +17,7 @@ Options:
   -d, --global-timedelta TEXT
   -D, --show-date                 Show current date and time.
   -S, --show-status               Show info about current and next activities.
+  --max-status-length INTEGER
   -A, --show-activities           Show activities table filtered by
                                   activities_selectors.
   --list-categories               Show activities categories when rendering
