@@ -17,6 +17,7 @@ from rich.console import Console, ConsoleOptions
 from rich.table import Table
 
 from timetable_cli import selectors
+from timetable_cli.activity import Activity
 from timetable_cli.application import (Application, CategoriesRenderConfig,
                                        RenderConfig, TableConfig)
 from timetable_cli.enums import Columns
@@ -129,20 +130,21 @@ def cli(context: click.Context, activities_selector: List[str], **kwargs):
 
     if kwargs["clear_screen"]:
         clear_screen()
+    activities = select_activities(app, activities_selector)
     if kwargs["watch"]:
-        watch(app, activities_selector, **kwargs)
+        watch(app, activities, **kwargs)
     else:
-        show_info(app, activities_selector, **kwargs)
+        show_info(app, activities, **kwargs)
 
 
-def watch(app: Application, activities_selector: List[str], **kwargs):
+def watch(app: Application, activities: List[Activity], **kwargs):
     """Render in a loop and display notifications."""
     previous_activity = app.timetable.for_datetime(app.now())
     while True:
         current_activity = app.timetable.for_datetime(app.now())
         if kwargs["clear_screen"]:
             clear_screen()
-        show_info(app, activities_selector, **kwargs)
+        show_info(app, activities, **kwargs)
         if previous_activity != current_activity:
             next_activity = current_activity.next()
             text = kwargs["watch_notification_text"]
@@ -181,7 +183,7 @@ def watch(app: Application, activities_selector: List[str], **kwargs):
         sleep(kwargs["watch_interval"])
 
 
-def show_info(app: Application, activities_selector: List[str], **kwargs):
+def show_info(app: Application, activities: List[Activity], **kwargs):
     """Show info about timetable."""
     kwargs_filtered = {
         key: val for key, val in kwargs.items() if key in COMMANDS and val
@@ -200,7 +202,7 @@ def show_info(app: Application, activities_selector: List[str], **kwargs):
             case "show_status":
                 show_status(app, app.timetable, kwargs["max_status_length"])
             case "show_activities":
-                show_activities(app, activities_selector)
+                show_activities(app, activities)
             case "show_rules":
                 if kwargs["rules_list"]:
                     show_rules(app)
@@ -210,14 +212,19 @@ def show_info(app: Application, activities_selector: List[str], **kwargs):
             rich.print("")
 
 
-def show_activities(app: Application, selectors_str_list: List[str]):
-    """Show activities filtered by selectors_str_list."""
+def select_activities(app, selectors_str_list: List[str]) -> List[Activity]:
     timetable = app.timetable
     selectors = parse_selectors(selectors_str_list)
     logger.debug(selectors)
     activities = []
     for selector in selectors:
         activities += selector.get(timetable, app.now())
+    logger.debug(activities)
+    return activities
+
+
+def show_activities(app: Application, activities: List[Activity]):
+    """Show activities table."""
     show_activities_table(
         activities,
         app,
