@@ -7,12 +7,13 @@ import random
 import sqlite3
 import subprocess
 from time import sleep
-from typing import List
+from typing import List, Optional
 
 import click
 import rich
 from appdirs import AppDirs
 from rich.box import ROUNDED
+from rich.console import Console, ConsoleOptions
 from rich.table import Table
 
 from timetable_cli import selectors
@@ -68,6 +69,7 @@ CREATE TABLE IF NOT EXISTS records (
 @click.option("-d", "--global-timedelta", default="")
 @click.option("-D", "--show-date", is_flag=True, default=False, help="Show current date and time.")
 @click.option("-S", "--show-status", is_flag=True, default=False, help="Show info about current and next activities.")
+@click.option("--max-status-length", type=int, default=None)
 @click.option("-A", "--show-activities", is_flag=True, default=False, help="Show activities table filtered by activities_selectors.")
 @click.argument("activities_selector", nargs=-1, type=str)
 @click.option("--list-categories", is_flag=True, default=False, help="Show activities categories when rendering activities table.")
@@ -196,7 +198,7 @@ def show_info(app: Application, activities_selector: List[str], **kwargs):
                 else:
                     show_random_quote(app)
             case "show_status":
-                show_status(app, app.timetable)
+                show_status(app, app.timetable, kwargs["max_status_length"])
             case "show_activities":
                 show_activities(app, activities_selector)
             case "show_rules":
@@ -248,7 +250,11 @@ def show_time_and_date(app: Application):
     rich.print(table)
 
 
-def show_status(app: Application, timetable: Timetable):
+def show_status(
+        app: Application,
+        timetable: Timetable,
+        max_status_length: Optional[int] = None
+                ):
     """Show current and next activities."""
     activity_1 = timetable.for_datetime(app.now())
     activity_2 = activity_1.next()
@@ -268,7 +274,15 @@ def show_status(app: Application, timetable: Timetable):
         "ETA " + a2_eta,
         a2_title,
     )
-    rich.print(table)
+    console = Console()
+    with console.capture() as capture:
+        console.print(table)
+    line = capture.get()
+    if max_status_length:
+        if len(line) > max_status_length - 3:
+            line = line[:max_status_length - 3] + "..."
+    print(line)
+
 
 
 def show_random_rule(app: Application):
