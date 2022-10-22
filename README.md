@@ -40,12 +40,13 @@ Options:
   --watch-voice
   --watch-voice-cmd TEXT
   --watch-notify-eta TEXT
-  -C, --check-activities          Check activities.
-  -i, --check-activities-interactively
+  -C, --check-activities TEXT     Check activities.
+  -I, --check-activities-interactively
                                   Check activities interactively.
   -c, --check-activities-already-checked
                                   Check already checked activities.
-  -s, --check-activities-status INTEGER
-                                  Check activities status.
+  -e, --edit-config               Edit config module.
+  --editor TEXT                   Text editor.
+  --edit-db                       Edit database.
   --help                          Show this message and exit.
 ```
