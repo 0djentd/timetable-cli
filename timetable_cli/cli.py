@@ -1,5 +1,6 @@
 import imp
 import json
+import sys
 import logging
 import os
 import platform
@@ -9,11 +10,12 @@ import subprocess
 from time import sleep
 from typing import List, Optional
 
+import interactive_select
 import click
 import rich
 from appdirs import AppDirs
 from rich.box import ROUNDED
-from rich.console import Console, ConsoleOptions
+from rich.console import Console
 from rich.table import Table
 
 from timetable_cli import selectors
@@ -41,7 +43,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def _get_db_connection(db_filename: str) -> sqlite3.Connection:
+def _get_db_connection(db_filename: str, debug: bool) -> sqlite3.Connection:
     connection = sqlite3.connect(
         db_filename, detect_types=sqlite3.PARSE_DECLTYPES
         | sqlite3.PARSE_COLNAMES
@@ -49,14 +51,25 @@ def _get_db_connection(db_filename: str) -> sqlite3.Connection:
     cursor = connection.cursor()
     cursor.executescript(
         """
-CREATE TABLE IF NOT EXISTS records (
-    id int PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS activities (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     title VARCHAR(255) NOT NULL,
-    status int NOT NULL,
-    date TIMESTAMP
-)"""
+    variation VARCHAR(255),
+    start TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    status INTEGER NOT NULL,
+    date TIMESTAMP,
+    activity INTEGER,
+    FOREIGN KEY (activity) REFERENCES Activities(id)
+);
+"""
     )
     connection.commit()
+    if debug:
+        connection.set_trace_callback(print)
     return connection
 
 
@@ -90,22 +103,30 @@ CREATE TABLE IF NOT EXISTS records (
 @click.option("--watch-voice", default=False, is_flag=True)
 @click.option("--watch-voice-cmd", default="espeak -s 0.1 -g 5 -p 1")
 @click.option("--watch-notify-eta", default="120m 60m 30m")
-@click.option("-C", "--check-activities", is_flag=True, default=False, help="Check activities.")
-@click.option("-i", "--check-activities-interactively", default=False, is_flag=True, help="Check activities interactively.")
+@click.option("-C", "--check-activities", default=None, type=str, required=False, help="Check activities.")
+@click.option("-I", "--check-activities-interactively", default=False, is_flag=True, help="Check activities interactively.")
 @click.option("-c", "--check-activities-already-checked", default=False, is_flag=True, help="Check already checked activities.")
-@click.option("-s", "--check-activities-status", default=-1, help="Check activities status.")
+@click.option("-e", "--edit-config", default=False, is_flag=True, help="Edit config module.")
+@click.option("--editor", default=os.environ.get("EDITOR", "vim"), help="Text editor.")
+@click.option("--edit-db", default=False, is_flag=True, help="Edit database.")
 @click.pass_context
 def cli(context: click.Context, activities_selector: List[str], **kwargs):
     if kwargs["debug"]:
         logging.basicConfig(level=logging.DEBUG)
-    if not activities_selector:
-        if kwargs["default_activities_selectors"]:
-            activities_selector = kwargs["default_activities_selectors"
-                                         ].split()
+    if not activities_selector and kwargs["default_activities_selectors"]:
+        activities_selector = kwargs["default_activities_selectors"].split()
+
+    if kwargs["edit_config"]:
+        subprocess.call(kwargs["editor"].split() + [kwargs['config']])
+        sys.exit()
+    if kwargs["edit_db"]:
+        subprocess.call(f"xdg-open {kwargs['db']}".split())
+        sys.exit()
+
     app = Application.from_config_module(
         config_module=imp.load_source(
             "config_module", kwargs["config"]),
-        connection=_get_db_connection(kwargs["db"]),
+        connection=_get_db_connection(kwargs["db"], kwargs["debug"]),
         global_timedelta=parse_timedelta_str(
             kwargs["global_timedelta"]),
         table_config=TableConfig(
@@ -135,6 +156,32 @@ def cli(context: click.Context, activities_selector: List[str], **kwargs):
         watch(app, activities, **kwargs)
     else:
         show_info(app, activities, **kwargs)
+
+    if not kwargs["check_activities_already_checked"]:
+        activities_to_check = [activity for activity in activities
+                               if not activity.get_status(app)]
+    else:
+        activities_to_check = activities
+
+    if kwargs["check_activities_interactively"]:
+        if kwargs["check_activities"]:
+            raise ValueError
+        check_activities_interactively(app, activities_to_check)
+    if kwargs["check_activities"]:
+        if kwargs["watch"]:
+            raise ValueError
+        check_activities(app, activities_to_check, kwargs["check_activities"])
+
+
+def check_activities_interactively(app, activities: List[Activity]):
+    for activity in activities:
+        status = interactive_select.select(["none", "ok", "skip"])
+        activity.set_status(app, status)
+
+
+def check_activities(app, activities: List[Activity], status: int):
+    for activity in activities:
+        activity.set_status(app, status)
 
 
 def watch(app: Application, activities: List[Activity], **kwargs):

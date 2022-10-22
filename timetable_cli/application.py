@@ -67,8 +67,8 @@ class Application:
         categories_render_config: CategoriesRenderConfig,
     ):
         """Instantiate Application using config module"""
-        timetable = config_module.get_timetable(
-            datetime.datetime.now() + global_timedelta)
+        now = datetime.datetime.now() + global_timedelta
+        timetable = config_module.get_timetable(now.date())
 
         try:
             colorscheme = config_module.get_colorscheme()
@@ -88,6 +88,7 @@ class Application:
             quotes = config_module.get_quotes()
         except AttributeError:
             quotes = None
+
         return cls(
             timetable=timetable,
             colorscheme=colorscheme,

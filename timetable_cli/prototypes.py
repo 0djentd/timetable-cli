@@ -31,9 +31,10 @@ class DailyActivityPrototype(ActivityPrototype):
         start: datetime.time | str,
         title: str,
         variation: Optional[str] = None,
-        *args,
         category: Optional[ActivityCategory] = None
     ):
+        if variation is None:
+            variation = ""
         if not isinstance(start, datetime.time):
             start = time_from_time_str(start)
         self.title = title

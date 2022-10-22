@@ -5,7 +5,6 @@ from typing import Any, Optional
 
 from timetable_cli.category import ActivityCategory
 from timetable_cli.enums import ActivityTimeStatus
-from timetable_cli.utils import format_time, parse_timedelta
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -19,21 +18,63 @@ class Activity:
     category: Optional[ActivityCategory] = None
     colorscheme: dict = field(default_factory=dict)
     _timetable: Optional[Any] = None
+    _activity_id: Optional[int] = None
 
-    def get_status(self, application: Any):
-        """The status property."""
+    def activity_id(self, app) -> int:
+        if self._activity_id:
+            return self._activity_id
+        result = self._get_activity_id(app)
+        if not result:
+            self._add_activity_to_db(app)
+            result = self._get_activity_id(app)
+        if result is None:
+            raise TypeError
+        self._activity_id = result
+        return result
+
+    def _get_activity_id(self, application) -> Optional[int]:
+        sql = """SELECT id FROM activities WHERE \
+title=? AND variation=? \
+AND start=?;"""
         cur = application.connection.cursor()
-        cur.execute(
-            f"""
-SELECT status FROM records WHERE title='{self.title}' AND date='{self._timetable.date.isoformat()};'"""
-        )
-        return cur.fetchone()
+        cur.execute(sql, [self.title, self.variation,
+                          self.start.time().isoformat()])
+        result = cur.fetchone()
+        logger.debug(result)
+        if result:
+            return result[0]
+        return None
 
-    def set_status(self, application: Any, value):
-        application.connection.cursor().execute(
-            f"""
-INSERT INTO records (title='{self.title}', date='{self._timetable.date.isoformat()}', status='{value}');"""
-        )
+    def _add_activity_to_db(self, app):
+        sql = """INSERT INTO activities (title, variation, start) VALUES \
+(?, ?, ?);"""
+        con = app.connection
+        cur = con.cursor()
+        cur.execute(sql, [self.title, self.variation,
+                          self.start.time().isoformat()])
+        con.commit()
+
+    def get_status(self, app: Any) -> int:
+        """The status property."""
+        sql = """SELECT status FROM records WHERE activity=? AND date=?;"""
+        cur = app.connection.cursor()
+        cur.execute(sql, [self.activity_id(app),
+                          self._timetable.date.isoformat()])
+        result = cur.fetchone()
+        logger.debug(result)
+        if result:
+            return result[0]
+        return 0
+
+    def set_status(self, app: Any, value: int):
+        sql = """INSERT INTO records (activity, date, status) \
+VALUES (?, ?, ?);"""
+        app.connection.cursor().execute(
+                sql, [self.activity_id(app),
+                      self._timetable.date.isoformat(),
+                      value]
+            )
+        app.connection.commit()
 
     def next(self):
         if not self._timetable:
@@ -60,5 +101,4 @@ INSERT INTO records (title='{self.title}', date='{self._timetable.date.isoformat
                 result = ActivityTimeStatus.NOW
         else:
             result = ActivityTimeStatus.AFTER
-        logger.debug(result)
         return result
