@@ -388,7 +388,3 @@ def clear_screen():
         subprocess.call("clear")
     else:
         raise ValueError
-
-
-if __name__ == "__main__":
-    cli()
