@@ -160,7 +160,7 @@ def get_activity_prop_str(
             element = variation_str
         case Columns.STATUS:
             element = add_tags(
-                str(activity.get_status(application)), "activity_status")
+                str(activity.get_status(application).title), "activity_status")
     return element
 
 

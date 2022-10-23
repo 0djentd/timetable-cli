@@ -10,6 +10,12 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+@dataclass
+class ActivityStatus:
+    title: str
+    description: str = ""
+
+
 @dataclass(kw_only=True)
 class Activity:
     start: datetime.datetime
@@ -63,16 +69,33 @@ AND start=?;"""
         result = cur.fetchone()
         logger.debug(result)
         if result:
-            return result[0]
-        return 0
+            return app.activity_status_variations[result[0]]
+        result = app.activity_status_variations[0]
+        self._set_status(app, result)
+        return result
 
-    def set_status(self, app: Any, value: int):
+    def set_status(self, app: Any, value: ActivityStatus):
+        self.get_status(app)
+        self._update_status(app, value)
+
+    def _set_status(self, app: Any, value: ActivityStatus):
+        logger.debug(value)
         sql = """INSERT INTO records (activity, date, status) \
 VALUES (?, ?, ?);"""
         app.connection.cursor().execute(
                 sql, [self.activity_id(app),
                       self._timetable.date.isoformat(),
-                      value]
+                      app.activity_status_variations.index(value)]
+            )
+        app.connection.commit()
+
+    def _update_status(self, app: Any, value: ActivityStatus):
+        logger.debug(value)
+        sql = """UPDATE records SET status = ? WHERE activity = ? AND date = ?;"""
+        app.connection.cursor().execute(
+                sql, [app.activity_status_variations.index(value),
+                      self.activity_id(app),
+                      self._timetable.date.isoformat()]
             )
         app.connection.commit()
 

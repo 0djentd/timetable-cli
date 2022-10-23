@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from types import ModuleType
 from typing import Any, List, Optional
 
+from timetable_cli.activity import ActivityStatus
 from timetable_cli.enums import Columns
 from timetable_cli.selectors import DEFAULT_SHORTCUTS
 from timetable_cli.utils import check_colorscheme
@@ -45,6 +46,7 @@ class Application:
     render_config: RenderConfig
     config_module: ModuleType
     categories_render_config: CategoriesRenderConfig
+    activity_status_variations: List[ActivityStatus]
     rules: Optional[List[str]] = None
     quotes: Optional[List] = None
 
@@ -88,6 +90,10 @@ class Application:
             quotes = config_module.get_quotes()
         except AttributeError:
             quotes = None
+        try:
+            activity_status_variations = config_module.get_activity_status_variations()
+        except AttributeError:
+            activity_status_variations = [ActivityStatus("None")]
 
         return cls(
             timetable=timetable,
@@ -100,5 +106,6 @@ class Application:
             global_timedelta=global_timedelta,
             table_config=table_config,
             render_config=render_config,
+            activity_status_variations=activity_status_variations,
             categories_render_config=categories_render_config,
         )

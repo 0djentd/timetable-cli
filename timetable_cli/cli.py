@@ -1,17 +1,18 @@
 import imp
 import json
-import sys
 import logging
 import os
 import platform
 import random
+import re
 import sqlite3
 import subprocess
+import sys
 from time import sleep
 from typing import List, Optional
 
-import interactive_select
 import click
+import interactive_select
 import rich
 from appdirs import AppDirs
 from rich.box import ROUNDED
@@ -19,7 +20,7 @@ from rich.console import Console
 from rich.table import Table
 
 from timetable_cli import selectors
-from timetable_cli.activity import Activity
+from timetable_cli.activity import Activity, ActivityStatus
 from timetable_cli.application import (Application, CategoriesRenderConfig,
                                        RenderConfig, TableConfig)
 from timetable_cli.enums import Columns
@@ -152,14 +153,11 @@ def cli(context: click.Context, activities_selector: List[str], **kwargs):
     if kwargs["clear_screen"]:
         clear_screen()
     activities = select_activities(app, activities_selector)
-    if kwargs["watch"]:
-        watch(app, activities, **kwargs)
-    else:
-        show_info(app, activities, **kwargs)
 
     if not kwargs["check_activities_already_checked"]:
         activities_to_check = [activity for activity in activities
-                               if not activity.get_status(app)]
+                               if activity.get_status(app) !=
+                               app.activity_status_variations[0]]
     else:
         activities_to_check = activities
 
@@ -168,9 +166,27 @@ def cli(context: click.Context, activities_selector: List[str], **kwargs):
             raise ValueError
         check_activities_interactively(app, activities_to_check)
     if kwargs["check_activities"]:
+        status = None
+        for index, variation in enumerate(app.activity_status_variations):
+            try:
+                if index == int(kwargs["check_activities"]):
+                    status = variation
+                    break
+            except ValueError:
+                if re.match(kwargs["check_activities"].lower(), variation.title.lower()):
+                    status = variation
+                    break
+        if not status:
+            raise ValueError
+        logger.debug("status: %s", status)
         if kwargs["watch"]:
             raise ValueError
-        check_activities(app, activities_to_check, kwargs["check_activities"])
+        check_activities(app, activities_to_check, status)
+
+    if kwargs["watch"]:
+        watch(app, activities, **kwargs)
+    else:
+        show_info(app, activities, **kwargs)
 
 
 def check_activities_interactively(app, activities: List[Activity]):
@@ -179,7 +195,7 @@ def check_activities_interactively(app, activities: List[Activity]):
         activity.set_status(app, status)
 
 
-def check_activities(app, activities: List[Activity], status: int):
+def check_activities(app, activities: List[Activity], status: ActivityStatus):
     for activity in activities:
         activity.set_status(app, status)
 
