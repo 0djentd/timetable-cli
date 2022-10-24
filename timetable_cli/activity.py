@@ -65,7 +65,7 @@ AND start=?;"""
         sql = """SELECT status FROM records WHERE activity=? AND date=?;"""
         cur = app.connection.cursor()
         cur.execute(sql, [self.activity_id(app),
-                          self._timetable.date.isoformat()])
+                          self.start.date().isoformat()])
         result = cur.fetchone()
         logger.debug(result)
         if result:
@@ -84,28 +84,29 @@ AND start=?;"""
 VALUES (?, ?, ?);"""
         app.connection.cursor().execute(
                 sql, [self.activity_id(app),
-                      self._timetable.date.isoformat(),
+                      self.start.date().isoformat(),
                       app.activity_status_variations.index(value)]
             )
         app.connection.commit()
 
     def _update_status(self, app: Any, value: ActivityStatus):
         logger.debug(value)
-        sql = """UPDATE records SET status = ? WHERE activity = ? AND date = ?;"""
+        sql = """UPDATE records SET status = ? WHERE \
+activity = ? AND date = ?;"""
         app.connection.cursor().execute(
                 sql, [app.activity_status_variations.index(value),
                       self.activity_id(app),
-                      self._timetable.date.isoformat()]
+                      self.start.date().isoformat()]
             )
         app.connection.commit()
 
     def next(self):
         if not self._timetable:
             raise ValueError
-        index = self._timetable.index(self)
-        if index == len(self._timetable) - 1:
-            return self._timetable[0]
-        return self._timetable[index + 1]
+        index = self._timetable.activities.index(self)
+        if index == len(self._timetable.activities) - 1:
+            return self._timetable.activities[0]
+        return self._timetable.activities[index + 1]
 
     def total_time(self) -> datetime.timedelta:
         result = self.next().start - self.start

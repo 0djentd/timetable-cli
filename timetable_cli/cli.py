@@ -228,7 +228,7 @@ def watch(app: App, activities: List[Activity], **kwargs):
             if current_activity.variation:
                 title += " " + current_activity.variation
             if kwargs["watch_notify_eta"]:
-                if current_activity != app.timetable[-1]:
+                if current_activity != app.timetable.activities[-1]:
                     eta = next_activity.eta(app)
                     if eta in kwargs["watch_notify_eta"].split():
                         if kwargs["watch_notification"]:

@@ -106,7 +106,6 @@ class TimetablePrototype(UserList):
         for prototype in self.data:
             activities.extend(prototype.get(date))
         timetable = Timetable(activities)
-        for activity in timetable:
+        for activity in timetable.activities:
             activity._timetable = timetable
-        timetable.date = date
         return timetable

@@ -70,7 +70,7 @@ class SelectorNumber(SimpleSelector):
     _VALUE_TYPE = int
 
     def get(self, timetable, datetime_input) -> List[Activity]:
-        return [timetable[self.value]]
+        return [timetable.activities[self.value]]
 
 
 class SelectorCentered(SimpleSelector):
@@ -128,7 +128,7 @@ class RangeSelector(ComplexSelector):
                 if len(activity) != 1:
                     raise ValueError
                 activity = activity[0]
-            return timetable.index(activity)
+            return timetable.activities.index(activity)
 
         i_1 = get_index(activity_1)
         i_2 = get_index(activity_2)
@@ -136,8 +136,8 @@ class RangeSelector(ComplexSelector):
             i_2 += 1
         if i_1 and i_2:
             if i_1 > i_2:
-                return list(timetable[i_1:]) + list(timetable[:i_2])
-        return list(timetable[i_1:i_2])
+                return list(timetable.activities[i_1:]) + list(timetable.activities[:i_2])
+        return list(timetable.activities[i_1:i_2])
 
 
 class TitleSelector(SimpleSelector):
@@ -148,7 +148,7 @@ class TitleSelector(SimpleSelector):
 
     def get(self, timetable, datetime_input) -> List[Activity]:
         value = self.value
-        for activity in timetable:
+        for activity in timetable.activities:
             if re.search(value, activity.title):
                 return [activity]
         raise ActivityNotFound(f"'{value}'")
@@ -163,7 +163,7 @@ class TitleSelectorMultipleActivities(TitleSelector):
     def get(self, timetable, datetime_input):
         value = self.value
         result = []
-        for activity in timetable:
+        for activity in timetable.activities:
             if re.search(value, activity.title):
                 result.append(activity)
         return result
