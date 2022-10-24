@@ -4,7 +4,7 @@ from typing import Optional
 
 import rich
 
-from timetable_cli.application import Application
+from timetable_cli.app import App
 from timetable_cli.utils import tag
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ class Quote:
     author: Optional[str] = None
     year: Optional[str] = None
 
-    def show(self, app: Application):
+    def show(self, app: App):
         text = f'"{self.text}"'
         if self.author:
             text += f" - {self.author}"

@@ -6,7 +6,7 @@ from rich.box import ROUNDED
 from rich.table import Table
 
 from timetable_cli.activity import Activity
-from timetable_cli.application import (Application, CategoriesRenderConfig,
+from timetable_cli.app import (App, CategoriesRenderConfig,
                                        RenderConfig, TableConfig)
 from timetable_cli.category import ActivityCategory
 from timetable_cli.colorscheme import DEFAULT_COLORSCHEME
@@ -26,7 +26,7 @@ DEFAULT_COLUMNS_STR = _columns_str_from_list(list(Columns))
 
 def show_activities_table(
     data: Activity | List[Activity],
-    application: Application,
+    app: App,
     table_config: TableConfig,
     render_config: RenderConfig,
     categories_render_config: CategoriesRenderConfig,
@@ -58,10 +58,10 @@ def show_activities_table(
         elements = []
         for column in columns:
             element = get_activity_prop_str(
-                activity, column, application, render_config
+                activity, column, app, render_config
             )
             elements.append(element)
-        if activity.time_status(application.now()) == ActivityTimeStatus.NOW:
+        if activity.time_status(app.now()) == ActivityTimeStatus.NOW:
             table.add_section()
             table.add_row(*elements)
             table.add_section()
@@ -69,16 +69,16 @@ def show_activities_table(
             table.add_row(*elements)
 
     if categories_render_config.list_categories:
-        show_categories_list(application.timetable.categories)
+        show_categories_list(app.timetable.categories)
     rich.print(table)
 
 
 def get_activity_prop_str(
-    activity, column: Columns, application: Application, render_config: RenderConfig
+    activity, column: Columns, app: App, render_config: RenderConfig
 ) -> str:
     def add_tags(variable, colorscheme_element):
         # colorschemes
-        global_colorscheme = application.colorscheme
+        global_colorscheme = app.colorscheme
         colorschemes = [DEFAULT_COLORSCHEME]
         if global_colorscheme:
             colorschemes.append(global_colorscheme)
@@ -91,7 +91,7 @@ def get_activity_prop_str(
         if render_config.ignore_time_status:
             suffix = "after"
         else:
-            match activity.time_status(application.now()):
+            match activity.time_status(app.now()):
                 case ActivityTimeStatus.BEFORE:
                     suffix = "before"
                 case ActivityTimeStatus.NOW:
@@ -141,14 +141,14 @@ def get_activity_prop_str(
                 "activity_total_time",
             )
         case Columns.ETA:
-            now = application.now()
+            now = app.now()
             if activity.time_status(now) == ActivityTimeStatus.BEFORE:
                 eta = "-"
             elif activity.time_status(now) == ActivityTimeStatus.NOW:
                 eta = "now"
             else:
                 eta = parse_timedelta(activity.eta(
-                    application)).format_minutes()
+                    app)).format_minutes()
             element = add_tags(str(eta), "activity_eta")
         case Columns.TITLE:
             title_str = add_tags(
@@ -161,7 +161,7 @@ def get_activity_prop_str(
             element = variation_str
         case Columns.STATUS:
             element = add_tags(
-                str(activity.get_status(application).title), "activity_status")
+                str(activity.get_status(app).title), "activity_status")
     return element
 
 

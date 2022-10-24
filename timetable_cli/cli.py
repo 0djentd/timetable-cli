@@ -21,7 +21,7 @@ from rich.table import Table
 
 from timetable_cli import selectors
 from timetable_cli.activity import Activity, ActivityStatus
-from timetable_cli.application import (Application, CategoriesRenderConfig,
+from timetable_cli.app import (App, CategoriesRenderConfig,
                                        RenderConfig, TableConfig)
 from timetable_cli.enums import Columns
 from timetable_cli.render import (DEFAULT_COLUMNS_STR, get_activity_prop_str,
@@ -127,7 +127,7 @@ def cli(context: click.Context, activities_selector: List[str], **kwargs):
         subprocess.call(f"xdg-open {kwargs['db']}".split())
         sys.exit()
 
-    app = Application.from_config_module(
+    app = App.from_config_module(
         config_module=imp.load_source(
             "config_module", kwargs["config"]),
         connection=_get_db_connection(kwargs["db"], kwargs["debug"]),
@@ -213,7 +213,7 @@ def check_activities(app, activities: List[Activity], status: ActivityStatus):
         activity.set_status(app, status)
 
 
-def watch(app: Application, activities: List[Activity], **kwargs):
+def watch(app: App, activities: List[Activity], **kwargs):
     """Render in a loop and display notifications."""
     previous_activity = app.timetable.for_datetime(app.now())
     while True:
@@ -259,7 +259,7 @@ def watch(app: Application, activities: List[Activity], **kwargs):
         sleep(kwargs["watch_interval"])
 
 
-def show_info(app: Application, activities: List[Activity], **kwargs):
+def show_info(app: App, activities: List[Activity], **kwargs):
     """Show info about timetable."""
     kwargs_filtered = {
         key: val for key, val in kwargs.items() if key in COMMANDS and val
@@ -299,7 +299,7 @@ def select_activities(app, selectors_str_list: List[str]) -> List[Activity]:
     return activities
 
 
-def show_activities(app: Application, activities: List[Activity]):
+def show_activities(app: App, activities: List[Activity]):
     """Show activities table."""
     show_activities_table(
         activities,
@@ -310,7 +310,7 @@ def show_activities(app: Application, activities: List[Activity]):
     )
 
 
-def show_time_and_date(app: Application):
+def show_time_and_date(app: App):
     """Show current time and date."""
     table = Table(
         # show_edge=False,
@@ -334,7 +334,7 @@ def show_time_and_date(app: Application):
 
 
 def show_status(
-        app: Application,
+        app: App,
         timetable: Timetable,
         max_status_length: Optional[int] = None
                 ):
@@ -367,7 +367,7 @@ def show_status(
     print(line.removesuffix("\n"))
 
 
-def show_random_rule(app: Application):
+def show_random_rule(app: App):
     """Show one random rule."""
     rules = app.rules
     if not rules:
@@ -376,7 +376,7 @@ def show_random_rule(app: Application):
     rich.print(rules[index])
 
 
-def show_rules(app: Application):
+def show_rules(app: App):
     """Show all rules."""
     rules = app.rules
     if not rules:
@@ -387,7 +387,7 @@ def show_rules(app: Application):
     rich.print(table)
 
 
-def show_random_quote(app: Application):
+def show_random_quote(app: App):
     """Show one random quote."""
     quotes = app.quotes
     if not quotes:
@@ -397,7 +397,7 @@ def show_random_quote(app: Application):
     quote.show(app)
 
 
-def show_quotes(app: Application):
+def show_quotes(app: App):
     """Show all quotes."""
     quotes = app.quotes
     if not quotes:

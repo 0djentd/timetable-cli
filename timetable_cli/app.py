@@ -35,8 +35,8 @@ class RenderConfig:
 
 
 @dataclass
-class Application:
-    """Application config"""
+class App:
+    """App config"""
     timetable: Any
     colorscheme: dict
     shortcuts: dict
@@ -68,7 +68,7 @@ class Application:
         render_config: RenderConfig,
         categories_render_config: CategoriesRenderConfig,
     ):
-        """Instantiate Application using config module"""
+        """Instantiate App using config module"""
         now = datetime.datetime.now() + global_timedelta
         timetable = config_module.get_timetable(now.date())
 

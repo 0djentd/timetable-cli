@@ -38,11 +38,11 @@ class Activity:
         self._activity_id = result
         return result
 
-    def _get_activity_id(self, application) -> Optional[int]:
+    def _get_activity_id(self, app) -> Optional[int]:
         sql = """SELECT id FROM activities WHERE \
 title=? AND variation=? \
 AND start=?;"""
-        cur = application.connection.cursor()
+        cur = app.connection.cursor()
         cur.execute(sql, [self.title, self.variation,
                           self.start.time().isoformat()])
         result = cur.fetchone()
@@ -113,8 +113,8 @@ VALUES (?, ?, ?);"""
             result = datetime.timedelta(seconds=result.seconds)
         return result
 
-    def eta(self, application) -> datetime.timedelta:
-        return self.start - application.now()
+    def eta(self, app) -> datetime.timedelta:
+        return self.start - app.now()
 
     def time_status(self, datetime_input: datetime.datetime) -> ActivityTimeStatus:
         if datetime_input > self.start:
