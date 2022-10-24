@@ -114,6 +114,9 @@ CREATE TABLE IF NOT EXISTS records (
 def cli(context: click.Context, activities_selector: List[str], **kwargs):
     if kwargs["debug"]:
         logging.basicConfig(level=logging.DEBUG)
+        logger.debug(context)
+        logger.debug(activities_selector)
+        logger.debug(kwargs)
     if not activities_selector and kwargs["default_activities_selectors"]:
         activities_selector = kwargs["default_activities_selectors"].split()
 
