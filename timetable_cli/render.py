@@ -30,6 +30,7 @@ def show_activities_table(
     table_config: TableConfig,
     render_config: RenderConfig,
     categories_render_config: CategoriesRenderConfig,
+    **kwargs,
 ):
     """Display activities in a table format."""
     columns: Optional[List[Columns]] = table_config.columns
@@ -48,7 +49,7 @@ def show_activities_table(
             columns.remove(Columns.VARIATION)
 
     # table
-    table = Table(box=ROUNDED, **table_kwargs)
+    table = Table(box=ROUNDED, **kwargs, **table_kwargs)
     for column in columns:
         table.add_column(column.value)
 
