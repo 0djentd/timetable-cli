@@ -60,7 +60,7 @@ AND start=?;"""
                           self.start.time().isoformat()])
         con.commit()
 
-    def get_status(self, app: Any) -> int:
+    def get_status(self, app: Any) -> ActivityStatus:
         """The status property."""
         sql = """SELECT status FROM records WHERE activity=? AND date=?;"""
         cur = app.connection.cursor()

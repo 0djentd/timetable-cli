@@ -158,9 +158,12 @@ def cli(context: click.Context, activities_selector: List[str], **kwargs):
     activities = select_activities(app, activities_selector)
 
     if not kwargs["check_activities_already_checked"]:
-        activities_to_check = [activity for activity in activities
-                               if activity.get_status(app) !=
-                               app.activity_status_variations[0]]
+        activities_to_check = []
+        for activity in activities:
+            activity_status_index = app.activity_status_variations.index(
+                    activity.get_status(app))
+            if activity_status_index == 0:
+                activities_to_check.append(activity)
     else:
         activities_to_check = activities
 
@@ -169,7 +172,7 @@ def cli(context: click.Context, activities_selector: List[str], **kwargs):
     if kwargs["check_activities_interactively"]:
         if kwargs["check_activities"]:
             raise ValueError
-        check_activities_interactively(app, activities_to_check)
+        check_activities_interactively(app, activities_to_check, **kwargs)
     if kwargs["check_activities"]:
         status = None
         for index, variation in enumerate(app.activity_status_variations):
@@ -194,8 +197,11 @@ def cli(context: click.Context, activities_selector: List[str], **kwargs):
         show_info(app, activities, **kwargs)
 
 
-def check_activities_interactively(app, activities: List[Activity]):
+def check_activities_interactively(app, activities: List[Activity], **kwargs):
     for activity in activities:
+        print(kwargs)
+        if kwargs["clear_screen"]:
+            clear_screen()
         show_activities_table([activity], app, app.table_config, app.render_config, app.categories_render_config, show_header=False)
         status = app.activity_status_variations[interactive_select.select(
             ["none", "ok", "skip"], min_items=1, max_items=1, retry=True)[0]]
