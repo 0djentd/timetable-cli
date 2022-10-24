@@ -204,7 +204,8 @@ def check_activities_interactively(app, activities: List[Activity], **kwargs):
             clear_screen()
         show_activities_table([activity], app, app.table_config, app.render_config, app.categories_render_config, show_header=False)
         status = app.activity_status_variations[interactive_select.select(
-            ["none", "ok", "skip"], min_items=1, max_items=1, retry=True)[0]]
+            [variation.title for variation in app.activity_status_variations],
+            min_items=1, max_items=1, retry=True)[0]]
         activity.set_status(app, status)
 
 
