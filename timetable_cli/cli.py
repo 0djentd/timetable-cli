@@ -191,7 +191,8 @@ def cli(context: click.Context, activities_selector: List[str], **kwargs):
 
 def check_activities_interactively(app, activities: List[Activity]):
     for activity in activities:
-        status = interactive_select.select(["none", "ok", "skip"])
+        status = app.activity_status_variations[interactive_select.select(
+            ["none", "ok", "skip"], min_items=1, max_items=1, retry=True)[0]]
         activity.set_status(app, status)
 
 
