@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "timetable-cli"
-version = "0.16.0"
+version = "0.17.0"
 description = ""
 authors = ["0djentd"]
 readme = "README.md"
